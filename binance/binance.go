@@ -72,13 +72,26 @@ func (b *Binance) doRequest(method, path string, values url.Values, sign bool) (
 	return body, nil
 }
 
-func (b *Binance) Buy(usdt float64) error {
+func (b *Binance) marketOrder(usdt float64, buy bool) error {
+	side := "BUY"
+	if !buy {
+		side = "SELL"
+	}
+
 	v := url.Values{
 		"symbol":        {"BTCUSDT"},
-		"side":          {"BUY"},
+		"side":          {side},
 		"type":          {"MARKET"},
 		"quoteOrderQty": {strconv.FormatFloat(usdt, 'f', 8, 64)}}
 
 	_, err := b.doRequest("POST", "/api/v3/order", v, true)
 	return err
+}
+
+func (b *Binance) Buy(usdt float64) error {
+	return b.marketOrder(usdt, true)
+}
+
+func (b *Binance) Sell(usdt float64) error {
+	return b.marketOrder(usdt, false)
 }
