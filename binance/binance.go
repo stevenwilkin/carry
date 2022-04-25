@@ -3,6 +3,7 @@ package binance
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -94,4 +95,27 @@ func (b *Binance) Buy(usdt float64) error {
 
 func (b *Binance) Sell(usdt float64) error {
 	return b.marketOrder(usdt, false)
+}
+
+func (b *Binance) GetBalance() (float64, error) {
+	body, err := b.doRequest("GET", "/api/v3/account", url.Values{}, true)
+	if err != nil {
+		return 0, err
+	}
+
+	var response accountResponse
+	json.Unmarshal(body, &response)
+
+	var usdt float64
+
+	for _, asset := range response.Balances {
+		switch asset.Asset {
+		case "USDT":
+			usdt = asset.Total()
+		default:
+			continue
+		}
+	}
+
+	return usdt, nil
 }
