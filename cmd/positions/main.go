@@ -55,15 +55,30 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	usdt := fmt.Sprintf("%s:   %.2f", bold.Render("USDT"), m.usdt)
-	btcusd := fmt.Sprintf("%s: %d", bold.Render("BTCUSD"), m.btcusd)
+	var output string
 
-	futures := ""
-	for contract, size := range m.futures {
-		futures += fmt.Sprintf("%s: %d\n", bold.Render(contract), size)
+	w := len("USDT:")
+	if len(m.futures) > 0 {
+		w = len("BTC-31MAR23:")
+	} else if m.btcusd != 0 {
+		w = len("BTCUSD:")
+	}
+	width := lipgloss.NewStyle().Width(w)
+
+	if m.usdt != 0 {
+		output += fmt.Sprintf("%s %.2f\n", width.Render(bold.Render("USDT")+":"), m.usdt)
 	}
 
-	return margin.Render(fmt.Sprintf("%s\n%s\n%s", usdt, btcusd, futures))
+	if m.btcusd != 0 {
+		output += fmt.Sprintf("%s %d\n", width.Render(bold.Render("BTCUSD")+":"), m.btcusd)
+	}
+
+	for contract, size := range m.futures {
+		entry := fmt.Sprintf("%s %d\n", width.Render(bold.Render(contract)+":"), size)
+		output += entry
+	}
+
+	return margin.Render(output)
 }
 
 func main() {
