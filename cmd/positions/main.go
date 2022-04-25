@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stevenwilkin/carry/binance"
+	"github.com/stevenwilkin/carry/bybit"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -14,14 +15,17 @@ import (
 
 var (
 	b      *binance.Binance
+	by     *bybit.Bybit
 	margin = lipgloss.NewStyle().Margin(1, 2, 0, 2)
 	bold   = lipgloss.NewStyle().Bold(true)
 )
 
 type usdtMsg float64
+type btcusdMsg int
 
 type model struct {
-	usdt float64
+	usdt   float64
+	btcusd int
 }
 
 func (m model) Init() tea.Cmd {
@@ -37,15 +41,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case usdtMsg:
 		m.usdt = float64(msg)
+	case btcusdMsg:
+		m.btcusd = int(msg)
 	}
 
 	return m, nil
 }
 
 func (m model) View() string {
-	usdt := fmt.Sprintf("%s: %.2f", bold.Render("USDT"), m.usdt)
+	usdt := fmt.Sprintf("%s:   %.2f", bold.Render("USDT"), m.usdt)
+	btcusd := fmt.Sprintf("%s: %d", bold.Render("BTCUSD"), m.btcusd)
 
-	return margin.Render(fmt.Sprintf("%s", usdt))
+	return margin.Render(fmt.Sprintf("%s\n%s", usdt, btcusd))
 }
 
 func main() {
@@ -54,6 +61,10 @@ func main() {
 	b = &binance.Binance{
 		ApiKey:    os.Getenv("BINANCE_API_KEY"),
 		ApiSecret: os.Getenv("BINANCE_API_SECRET")}
+
+	by = &bybit.Bybit{
+		ApiKey:    os.Getenv("BYBIT_API_KEY"),
+		ApiSecret: os.Getenv("BYBIT_API_SECRET")}
 
 	go func() {
 		t := time.NewTicker(1 * time.Second)
@@ -65,6 +76,17 @@ func main() {
 			}
 
 			p.Send(usdtMsg(usdt))
+			<-t.C
+		}
+	}()
+
+	go func() {
+		t := time.NewTicker(1 * time.Second)
+
+		for {
+			btcusd := by.GetSize()
+
+			p.Send(btcusdMsg(btcusd))
 			<-t.C
 		}
 	}()
