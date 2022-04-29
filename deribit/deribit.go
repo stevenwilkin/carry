@@ -113,21 +113,3 @@ func (d *Deribit) get(path string, params url.Values, result interface{}) error 
 
 	return nil
 }
-
-func (d *Deribit) GetPositions() map[string]int {
-	result := map[string]int{}
-	var response positionsResponse
-
-	err := d.get("/api/v2/private/get_positions",
-		url.Values{"currency": {"BTC"}, "kind": {"future"}}, &response)
-
-	if err != nil {
-		return result
-	}
-
-	for _, position := range response.Result {
-		result[position.InstrumentName] = int(position.Size)
-	}
-
-	return result
-}

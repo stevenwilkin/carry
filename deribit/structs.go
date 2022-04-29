@@ -7,9 +7,11 @@ type authResponse struct {
 	} `json:"result"`
 }
 
+type Position struct {
+	InstrumentName string  `json:"instrument_name"`
+	Size           float64 `json:"size"`
+}
+
 type positionsResponse struct {
-	Result []struct {
-		InstrumentName string  `json:"instrument_name"`
-		Size           float64 `json:"size"`
-	} `json:"result"`
+	Result []Position `json:"result"`
 }

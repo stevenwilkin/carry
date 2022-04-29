@@ -24,12 +24,12 @@ var (
 
 type usdtMsg float64
 type btcusdMsg int
-type futuresMsg map[string]int
+type futuresMsg []deribit.Position
 
 type model struct {
 	usdt    float64
 	btcusd  int
-	futures map[string]int
+	futures []deribit.Position
 }
 
 func (m model) Init() tea.Cmd {
@@ -48,7 +48,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case btcusdMsg:
 		m.btcusd = int(msg)
 	case futuresMsg:
-		m.futures = map[string]int(msg)
+		m.futures = []deribit.Position(msg)
 	}
 
 	return m, nil
@@ -73,8 +73,9 @@ func (m model) View() string {
 		output += fmt.Sprintf("%s %d\n", width.Render(bold.Render("BTCUSD")+":"), m.btcusd)
 	}
 
-	for contract, size := range m.futures {
-		entry := fmt.Sprintf("%s %d\n", width.Render(bold.Render(contract)+":"), size)
+	for _, position := range m.futures {
+		entry := fmt.Sprintf("%s %.0f\n",
+			width.Render(bold.Render(position.InstrumentName)+":"), position.Size)
 		output += entry
 	}
 
