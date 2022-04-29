@@ -15,3 +15,14 @@ type Position struct {
 type positionsResponse struct {
 	Result []Position `json:"result"`
 }
+
+type orderResponse struct {
+	Result struct {
+		Order struct {
+			OrderId string `json:"order_id"`
+		} `json:"order"`
+	} `json:"result"`
+	Error struct {
+		Message string `json:"message"`
+	} `json:"error"`
+}
