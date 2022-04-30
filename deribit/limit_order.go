@@ -30,3 +30,18 @@ func (d *Deribit) LimitOrder(instrument string, amount int, price float64, buy, 
 
 	return response.Result.Order.OrderId, nil
 }
+
+func (d *Deribit) EditOrder(orderId string, amount int, price float64, reduce bool) error {
+	v := url.Values{}
+	v.Set("order_id", orderId)
+	v.Set("amount", strconv.Itoa(amount))
+	v.Set("price", strconv.FormatFloat(price, 'f', 2, 64))
+	v.Set("post_only", "true")
+	v.Set("reject_post_only", "true")
+
+	if reduce {
+		v.Set("reduce_only", "true")
+	}
+
+	return d.get("/api/v2/private/edit", v, nil)
+}
