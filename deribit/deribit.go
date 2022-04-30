@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -15,6 +16,8 @@ type Deribit struct {
 	ApiId        string
 	ApiSecret    string
 	Test         bool
+	Bid          float64
+	Ask          float64
 	_accessToken string
 	expiresIn    time.Time
 }
@@ -112,4 +115,48 @@ func (d *Deribit) get(path string, params url.Values, result interface{}) error 
 	json.Unmarshal(body, result)
 
 	return nil
+}
+
+func (d *Deribit) subscribe(channels []string) (*websocket.Conn, error) {
+	socketUrl := url.URL{Scheme: "wss", Host: d.hostname(), Path: "/ws/api/v2"}
+
+	c, _, err := websocket.DefaultDialer.Dial(socketUrl.String(), nil)
+	if err != nil {
+		return &websocket.Conn{}, err
+	}
+
+	authRequest := requestMessage{
+		Method: "/public/auth",
+		Params: map[string]interface{}{
+			"client_id":     d.ApiId,
+			"client_secret": d.ApiSecret,
+			"grant_type":    "client_credentials"}}
+
+	if err = c.WriteJSON(authRequest); err != nil {
+		return &websocket.Conn{}, err
+	}
+
+	request := requestMessage{
+		Method: "/private/subscribe",
+		Params: map[string]interface{}{
+			"channels": channels}}
+
+	if err = c.WriteJSON(request); err != nil {
+		return &websocket.Conn{}, err
+	}
+
+	ticker := time.NewTicker(10 * time.Second)
+	testMessage := requestMessage{Method: "/public/test"}
+
+	go func() {
+		for {
+			if err = c.WriteJSON(testMessage); err != nil {
+				log.WithField("venue", "deribit").Debug("Heartbeat stopping")
+				return
+			}
+			<-ticker.C
+		}
+	}()
+
+	return c, nil
 }

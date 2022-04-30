@@ -26,3 +26,18 @@ type orderResponse struct {
 		Message string `json:"message"`
 	} `json:"error"`
 }
+
+type requestMessage struct {
+	Method string                 `json:"method"`
+	Params map[string]interface{} `json:"params"`
+}
+
+type quoteMessage struct {
+	Method string `json:"method"`
+	Params struct {
+		Data struct {
+			BestBidPrice float64 `json:"best_bid_price"`
+			BestAskPrice float64 `json:"best_ask_price"`
+		} `json:"data"`
+	} `json:"params"`
+}
