@@ -3,9 +3,18 @@ package deribit
 import (
 	"net/url"
 	"strconv"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func (d *Deribit) LimitOrder(instrument string, amount int, price float64, buy, reduce bool) (string, error) {
+	log.WithFields(log.Fields{
+		"venue":      "deribit",
+		"instrument": instrument,
+		"amount":     amount,
+		"price":      price,
+	}).Debug("Placing order")
+
 	v := url.Values{}
 	v.Set("instrument_name", instrument)
 	v.Set("amount", strconv.Itoa(amount))
@@ -32,6 +41,13 @@ func (d *Deribit) LimitOrder(instrument string, amount int, price float64, buy, 
 }
 
 func (d *Deribit) EditOrder(orderId string, amount int, price float64, reduce bool) error {
+	log.WithFields(log.Fields{
+		"venue":  "deribit",
+		"order":  orderId,
+		"amount": amount,
+		"price":  price,
+	}).Debug("Updating order")
+
 	v := url.Values{}
 	v.Set("order_id", orderId)
 	v.Set("amount", strconv.Itoa(amount))
