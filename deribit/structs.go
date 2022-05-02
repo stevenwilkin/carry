@@ -41,3 +41,14 @@ type quoteMessage struct {
 		} `json:"data"`
 	} `json:"params"`
 }
+
+type orderMessage struct {
+	Method string `json:"method"`
+	Params struct {
+		Data struct {
+			OrderId      string  `json:"order_id"`
+			OrderState   string  `json:"order_state"`
+			FilledAmount float64 `json:"filled_amount"`
+		} `json:"data"`
+	} `json:"params"`
+}
