@@ -12,12 +12,16 @@ import (
 	"sort"
 	"strconv"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 type Bybit struct {
 	ApiKey    string
 	ApiSecret string
 	Testnet   bool
+	Bid       float64
+	Ask       float64
 }
 
 func (b *Bybit) hostname() string {
@@ -25,6 +29,14 @@ func (b *Bybit) hostname() string {
 		return "api-testnet.bybit.com"
 	} else {
 		return "api.bybit.com"
+	}
+}
+
+func (b *Bybit) websocketHostname() string {
+	if b.Testnet {
+		return "stream-testnet.bybit.com"
+	} else {
+		return "stream.bybit.com"
 	}
 }
 
@@ -83,4 +95,36 @@ func (b *Bybit) get(path string, params map[string]string, result interface{}) e
 	json.Unmarshal(body, result)
 
 	return nil
+}
+
+func (b *Bybit) subscribe(channels []string) (*websocket.Conn, error) {
+	expires := (time.Now().UnixNano() / int64(time.Millisecond)) + 10000
+
+	signatureInput := fmt.Sprintf("GET/realtime%d", expires)
+	h := hmac.New(sha256.New, []byte(b.ApiSecret))
+	io.WriteString(h, signatureInput)
+	signature := fmt.Sprintf("%x", h.Sum(nil))
+
+	v := url.Values{}
+	v.Set("api_key", b.ApiKey)
+	v.Set("expires", strconv.FormatInt(expires, 10))
+	v.Set("signature", signature)
+
+	u := url.URL{
+		Scheme:   "wss",
+		Host:     b.websocketHostname(),
+		Path:     "/realtime",
+		RawQuery: v.Encode()}
+
+	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	if err != nil {
+		return &websocket.Conn{}, err
+	}
+
+	command := wsCommand{Op: "subscribe", Args: channels}
+	if err = c.WriteJSON(command); err != nil {
+		return &websocket.Conn{}, err
+	}
+
+	return c, nil
 }
