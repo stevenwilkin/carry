@@ -10,6 +10,12 @@ type positionResponse struct {
 	} `json:"result"`
 }
 
+type orderResponse struct {
+	Result struct {
+		OrderId string `json:"order_id"`
+	} `json:"result"`
+}
+
 type wsCommand struct {
 	Op   string   `json:"op"`
 	Args []string `json:"args"`

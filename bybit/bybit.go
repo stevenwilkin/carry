@@ -1,6 +1,7 @@
 package bybit
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/json"
@@ -82,6 +83,64 @@ func (b *Bybit) get(path string, params map[string]string, result interface{}) e
 	u := b.signedUrl(path, params)
 
 	resp, err := http.Get(u)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	json.Unmarshal(body, result)
+
+	return nil
+}
+
+func getSignature(params map[string]interface{}, key string) string {
+	keys := make([]string, len(params))
+	i := 0
+	_val := ""
+	for k, _ := range params {
+		keys[i] = k
+		i++
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		_val += fmt.Sprintf("%s=%v&", k, params[k])
+	}
+	_val = _val[0 : len(_val)-1]
+	h := hmac.New(sha256.New, []byte(key))
+	io.WriteString(h, _val)
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+func (b *Bybit) post(path string, params map[string]interface{}, result interface{}) error {
+	params["api_key"] = b.ApiKey
+	params["timestamp"] = b.timestamp()
+	params["sign"] = getSignature(params, b.ApiSecret)
+
+	jsonRequest, err := json.Marshal(params)
+	if err != nil {
+		return err
+	}
+
+	u := url.URL{
+		Scheme: "https",
+		Host:   b.hostname(),
+		Path:   path}
+
+	req, err := http.NewRequest("POST", u.String(), bytes.NewBuffer(jsonRequest))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
