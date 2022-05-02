@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"sort"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -23,6 +24,7 @@ type Bybit struct {
 	Testnet   bool
 	Bid       float64
 	Ask       float64
+	o         sync.Once
 }
 
 func (b *Bybit) hostname() string {

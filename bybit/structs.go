@@ -11,7 +11,9 @@ type positionResponse struct {
 }
 
 type orderResponse struct {
-	Result struct {
+	RetCode int    `json:"ret_code"`
+	RetMsg  string `json:"ret_msg"`
+	Result  struct {
 		OrderId string `json:"order_id"`
 	} `json:"result"`
 }
@@ -38,4 +40,14 @@ type snapshotData []order
 type updateData struct {
 	Delete []order `json:"delete"`
 	Insert []order `json:"insert"`
+}
+
+type orderTopicData struct {
+	Topic string `json:"topic"`
+	Data  []struct {
+		OrderId     string `json:"order_id"`
+		OrderStatus string `json:"order_status"`
+		Qty         int    `json:"qty"`
+		CumExecQty  int    `json:"cum_exec_qty"`
+	} `json:"data"`
 }

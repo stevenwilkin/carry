@@ -1,12 +1,13 @@
 package bybit
 
 import (
+	"errors"
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
 )
 
-func (b *Bybit) LimitOrder(contracts int, price float64, buy, reduce bool) string {
+func (b *Bybit) LimitOrder(contracts int, price float64, buy, reduce bool) (string, error) {
 	log.WithFields(log.Fields{
 		"venue":     "bybit",
 		"contracts": contracts,
@@ -33,13 +34,17 @@ func (b *Bybit) LimitOrder(contracts int, price float64, buy, reduce bool) strin
 
 	var result orderResponse
 	if err := b.post("/v2/private/order/create", params, &result); err != nil {
-		log.Error(err.Error())
+		return "", err
 	}
 
-	return result.Result.OrderId
+	if result.RetCode != 0 {
+		return "", errors.New(result.RetMsg)
+	}
+
+	return result.Result.OrderId, nil
 }
 
-func (b *Bybit) EditOrder(id string, price float64) string {
+func (b *Bybit) EditOrder(id string, price float64) error {
 	log.WithFields(log.Fields{
 		"venue": "bybit",
 		"order": id,
@@ -53,8 +58,12 @@ func (b *Bybit) EditOrder(id string, price float64) string {
 
 	var result orderResponse
 	if err := b.post("/v2/private/order/replace", params, &result); err != nil {
-		log.Error(err.Error())
+		return err
 	}
 
-	return result.Result.OrderId
+	if result.RetCode != 0 {
+		return errors.New(result.RetMsg)
+	}
+
+	return nil
 }
