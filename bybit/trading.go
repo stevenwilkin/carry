@@ -87,7 +87,7 @@ func (b *Bybit) canImprove(price, bestPrice float64, buy bool) bool {
 	}
 }
 
-func (b *Bybit) Trade(contracts int, buy, reduce bool, cb func(int)) {
+func (b *Bybit) Trade(contracts int, buy, reduce bool, cb func(int)) error {
 	log.WithFields(log.Fields{
 		"venue":     "bybit",
 		"contracts": contracts,
@@ -115,7 +115,7 @@ func (b *Bybit) Trade(contracts int, buy, reduce bool, cb func(int)) {
 		case completed, ok := <-ch:
 			if !ok {
 				log.WithField("venue", "bybit").Info("Trade completed")
-				return
+				return nil
 			}
 			if completed > totalCompleted {
 				delta := completed - totalCompleted
@@ -133,16 +133,14 @@ func (b *Bybit) Trade(contracts int, buy, reduce bool, cb func(int)) {
 				price = bestPrice()
 				orderId, err = b.LimitOrder(contracts-totalCompleted, price, buy, reduce)
 				if err != nil {
-					log.Error(err)
-					return
+					return err
 				}
 			} else {
 				newBestPrice = bestPrice()
 				if b.canImprove(price, newBestPrice, buy) {
 					price = newBestPrice
 					if err = b.EditOrder(orderId, newBestPrice); err != nil {
-						log.Error(err)
-						return
+						return err
 					}
 				}
 			}

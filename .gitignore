@@ -1,4 +1,5 @@
 /buy
 /sell
 /positions
+/carry
 .env

@@ -1,12 +1,13 @@
 package bybit
 
 import (
+	"errors"
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
 )
 
-func (b *Bybit) MarketOrder(contracts int, buy, reduce bool) string {
+func (b *Bybit) MarketOrder(contracts int, buy, reduce bool) error {
 	log.WithFields(log.Fields{
 		"venue":     "bybit",
 		"contracts": contracts,
@@ -31,8 +32,12 @@ func (b *Bybit) MarketOrder(contracts int, buy, reduce bool) string {
 
 	var result orderResponse
 	if err := b.post("/v2/private/order/create", params, &result); err != nil {
-		log.Error(err.Error())
+		return err
 	}
 
-	return result.Result.OrderId
+	if result.Result.OrderId == "" {
+		return errors.New("Empty order id")
+	}
+
+	return nil
 }

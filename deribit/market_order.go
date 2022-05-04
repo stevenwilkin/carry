@@ -1,11 +1,12 @@
 package deribit
 
 import (
+	"errors"
 	"net/url"
 	"strconv"
 )
 
-func (d *Deribit) MarketOrder(instrument string, amount int, buy, reduce bool) (string, error) {
+func (d *Deribit) MarketOrder(instrument string, amount int, buy, reduce bool) error {
 	v := url.Values{}
 	v.Set("instrument_name", instrument)
 	v.Set("amount", strconv.Itoa(amount))
@@ -21,10 +22,13 @@ func (d *Deribit) MarketOrder(instrument string, amount int, buy, reduce bool) (
 	}
 
 	var response orderResponse
-
 	if err := d.get(path, v, &response); err != nil {
-		return "", err
+		return err
 	}
 
-	return response.Result.Order.OrderId, nil
+	if response.Result.Order.OrderId == "" {
+		return errors.New("Empty order id")
+	}
+
+	return nil
 }

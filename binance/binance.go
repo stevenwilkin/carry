@@ -11,6 +11,8 @@ import (
 	"net/url"
 	"strconv"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Binance struct {
@@ -73,7 +75,13 @@ func (b *Binance) doRequest(method, path string, values url.Values, sign bool) (
 	return body, nil
 }
 
-func (b *Binance) marketOrder(usdt float64, buy bool) error {
+func (b *Binance) MarketOrder(usdt float64, buy bool) error {
+	log.WithFields(log.Fields{
+		"venue": "binance",
+		"usdt":  usdt,
+		"buy":   buy,
+	}).Debug("Placing market order")
+
 	side := "BUY"
 	if !buy {
 		side = "SELL"
@@ -90,11 +98,11 @@ func (b *Binance) marketOrder(usdt float64, buy bool) error {
 }
 
 func (b *Binance) Buy(usdt float64) error {
-	return b.marketOrder(usdt, true)
+	return b.MarketOrder(usdt, true)
 }
 
 func (b *Binance) Sell(usdt float64) error {
-	return b.marketOrder(usdt, false)
+	return b.MarketOrder(usdt, false)
 }
 
 func (b *Binance) GetBalance() (float64, error) {

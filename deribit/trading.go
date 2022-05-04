@@ -80,7 +80,7 @@ func canImprove(price, bestPrice float64, buy bool) bool {
 	}
 }
 
-func (d *Deribit) Trade(instrument string, contracts int, buy, reduce bool, cb func(float64)) {
+func (d *Deribit) Trade(instrument string, contracts int, buy, reduce bool, cb func(int)) error {
 	log.WithFields(log.Fields{
 		"venue":      "deribit",
 		"instrument": instrument,
@@ -107,7 +107,7 @@ func (d *Deribit) Trade(instrument string, contracts int, buy, reduce bool, cb f
 		case completed, ok := <-ch:
 			if !ok {
 				log.WithField("venue", "deribit").Info("Trade completed")
-				return
+				return nil
 			}
 			if completed > totalCompleted {
 				delta := completed - totalCompleted
@@ -115,7 +115,7 @@ func (d *Deribit) Trade(instrument string, contracts int, buy, reduce bool, cb f
 					"venue":  "deribit",
 					"amount": delta,
 				}).Debug("Callback")
-				cb(delta)
+				cb(int(delta))
 				totalCompleted = completed
 			}
 		case <-ticker.C:
@@ -123,17 +123,19 @@ func (d *Deribit) Trade(instrument string, contracts int, buy, reduce bool, cb f
 				price = bestPrice()
 				orderId, err = d.LimitOrder(instrument, contracts, price, buy, reduce)
 				if err != nil {
-					return
+					return err
 				}
 			} else {
 				newBestPrice = bestPrice()
 				if canImprove(price, newBestPrice, buy) {
 					price = newBestPrice
-					if d.EditOrder(orderId, contracts, price, reduce) != nil {
-						return
+					if err = d.EditOrder(orderId, contracts, price, reduce); err != nil {
+						return err
 					}
 				}
 			}
 		}
 	}
+
+	return nil
 }
