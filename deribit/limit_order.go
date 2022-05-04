@@ -1,6 +1,7 @@
 package deribit
 
 import (
+	"errors"
 	"net/url"
 	"strconv"
 
@@ -32,9 +33,12 @@ func (d *Deribit) LimitOrder(instrument string, amount int, price float64, buy, 
 	}
 
 	var response orderResponse
-
 	if err := d.get(path, v, &response); err != nil {
 		return "", err
+	}
+
+	if response.Error.Message != "" {
+		return "", errors.New(response.Error.Message)
 	}
 
 	return response.Result.Order.OrderId, nil
@@ -59,5 +63,14 @@ func (d *Deribit) EditOrder(orderId string, amount int, price float64, reduce bo
 		v.Set("reduce_only", "true")
 	}
 
-	return d.get("/api/v2/private/edit", v, nil)
+	var response orderResponse
+	if err := d.get("/api/v2/private/edit", v, &response); err != nil {
+		return err
+	}
+
+	if response.Error.Message != "" {
+		return errors.New(response.Error.Message)
+	}
+
+	return nil
 }

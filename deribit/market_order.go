@@ -26,8 +26,8 @@ func (d *Deribit) MarketOrder(instrument string, amount int, buy, reduce bool) e
 		return err
 	}
 
-	if response.Result.Order.OrderId == "" {
-		return errors.New("Empty order id")
+	if response.Error.Message != "" {
+		return errors.New(response.Error.Message)
 	}
 
 	return nil
