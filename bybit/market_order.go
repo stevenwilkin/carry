@@ -35,8 +35,8 @@ func (b *Bybit) MarketOrder(contracts int, buy, reduce bool) error {
 		return err
 	}
 
-	if result.Result.OrderId == "" {
-		return errors.New("Empty order id")
+	if result.RetCode != 0 {
+		return errors.New(result.RetMsg)
 	}
 
 	return nil
