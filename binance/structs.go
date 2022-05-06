@@ -17,3 +17,7 @@ func (ab *assetBalance) Total() float64 {
 type accountResponse struct {
 	Balances []assetBalance `json:"balances"`
 }
+
+type errorResponse struct {
+	Msg string `json:"msg"`
+}
