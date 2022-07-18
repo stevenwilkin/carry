@@ -43,3 +43,28 @@ func (b *BinanceFutures) LimitOrder(contracts int, price float64, buy, reduce bo
 
 	return result.OrderId, nil
 }
+
+func (b *BinanceFutures) EditOrder(id int64, price float64, buy bool) error {
+	log.WithFields(log.Fields{
+		"venue": "binance_f",
+		"order": id,
+		"price": price,
+	}).Debug("Updating order")
+
+	params := url.Values{
+		"orderId": {strconv.Itoa(int(id))},
+		"symbol":  {"BTCUSD_PERP"},
+		"price":   {strconv.FormatFloat(price, 'f', 2, 64)}}
+
+	if buy {
+		params.Add("side", "BUY")
+	} else {
+		params.Add("side", "SELL")
+	}
+
+	if _, err := b.doRequest("PUT", "/dapi/v1/order", params, true); err != nil {
+		return err
+	}
+
+	return nil
+}
