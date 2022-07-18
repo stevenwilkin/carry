@@ -8,7 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (b *BinanceFutures) LimitOrder(contracts int, price float64, buy, reduce bool) (int64, error) {
+func (b *BinanceFutures) LimitOrder(contracts int, price float64, buy, reduce bool) (int, error) {
 	log.WithFields(log.Fields{
 		"venue":     "binance_f",
 		"contracts": contracts,
@@ -44,7 +44,7 @@ func (b *BinanceFutures) LimitOrder(contracts int, price float64, buy, reduce bo
 	return result.OrderId, nil
 }
 
-func (b *BinanceFutures) EditOrder(id int64, price float64, buy bool) error {
+func (b *BinanceFutures) EditOrder(id int, price float64, buy bool) error {
 	log.WithFields(log.Fields{
 		"venue": "binance_f",
 		"order": id,
@@ -52,7 +52,7 @@ func (b *BinanceFutures) EditOrder(id int64, price float64, buy bool) error {
 	}).Debug("Updating order")
 
 	params := url.Values{
-		"orderId": {strconv.Itoa(int(id))},
+		"orderId": {strconv.Itoa(id)},
 		"symbol":  {"BTCUSD_PERP"},
 		"price":   {strconv.FormatFloat(price, 'f', 2, 64)}}
 

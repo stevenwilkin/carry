@@ -12,5 +12,22 @@ type errorResponse struct {
 }
 
 type orderResponse struct {
-	OrderId int64 `json:"orderId"`
+	OrderId int `json:"orderId"`
+}
+
+type listenKeyResponse struct {
+	ListenKey string `json:"listenKey"`
+}
+
+type userDataMessage struct {
+	EventType string `json:"e"`
+	EventTime int64  `json:"E"`
+	Order     struct {
+		ExecutionType string `json:"x"`
+		OrderStatus   string `json:"X"`
+		OrderId       int    `json:"i"`
+		FillQty       string `json:"l"`
+		FillPrice     string `json:"L"`
+		CumFillQty    string `json:"z"`
+	} `json:"o"`
 }

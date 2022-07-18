@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -21,6 +22,7 @@ type BinanceFutures struct {
 	Testnet   bool
 	Bid       float64
 	Ask       float64
+	o         sync.Once
 }
 
 func (b *BinanceFutures) hostname() string {
