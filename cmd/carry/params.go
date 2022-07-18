@@ -14,7 +14,7 @@ func testnet() bool {
 }
 
 func validContract(s string) bool {
-	matched, _ := regexp.MatchString("^BTC(USD|-[0-9]{1,2}[A-Z]{3}[0-9]{2})$", s)
+	matched, _ := regexp.MatchString("^BTC(USD|USD_PERP|-[0-9]{1,2}[A-Z]{3}[0-9]{2})$", s)
 	return matched
 }
 
