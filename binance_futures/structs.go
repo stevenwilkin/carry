@@ -6,3 +6,11 @@ type bookTickerMessage struct {
 	AskPrice string `json:"a"`
 	AskQty   string `json:"A"`
 }
+
+type errorResponse struct {
+	Msg string `json:"msg"`
+}
+
+type orderResponse struct {
+	OrderId int64 `json:"orderId"`
+}
