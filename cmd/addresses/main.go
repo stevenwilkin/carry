@@ -3,12 +3,20 @@ package main
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/stevenwilkin/carry/binance"
 	"github.com/stevenwilkin/carry/bybit"
 	"github.com/stevenwilkin/carry/deribit"
 
 	_ "github.com/joho/godotenv/autoload"
+)
+
+var (
+	wg          sync.WaitGroup
+	bBtc, bUsdt string
+	dBtc        string
+	byBtc       string
 )
 
 func main() {
@@ -24,24 +32,47 @@ func main() {
 		ApiKey:    os.Getenv("BYBIT_API_KEY"),
 		ApiSecret: os.Getenv("BYBIT_API_SECRET")}
 
-	btc, _ := b.GetAddress("BTC")
-	usdt, _ := b.GetAddress("USDT")
+	wg.Add(4)
 
-	if btc != "" && usdt != "" {
+	go func() {
+		bBtc, _ = b.GetAddress("BTC")
+		wg.Done()
+	}()
+
+	go func() {
+		bUsdt, _ = b.GetAddress("USDT")
+		wg.Done()
+	}()
+
+	go func() {
+		dBtc, _ = d.GetAddress()
+		wg.Done()
+	}()
+
+	go func() {
+		byBtc, _ = by.GetAddress()
+		wg.Done()
+	}()
+
+	wg.Wait()
+
+	if bBtc != "" || bUsdt != "" {
 		fmt.Println("Binance")
-		fmt.Printf("        BTC: %s\n", btc)
-		fmt.Printf("        USDT: %s\n", usdt)
+		if bBtc != "" {
+			fmt.Printf("        BTC: %s\n", bBtc)
+		}
+		if bUsdt != "" {
+			fmt.Printf("        USDT: %s\n", bUsdt)
+		}
 	}
 
-	btc, _ = d.GetAddress()
-	if btc != "" {
+	if dBtc != "" {
 		fmt.Println("Deribit")
-		fmt.Printf("        BTC: %s\n", btc)
+		fmt.Printf("        BTC: %s\n", dBtc)
 	}
 
-	btc, _ = by.GetAddress()
-	if btc != "" {
+	if byBtc != "" {
 		fmt.Println("Bybit  ")
-		fmt.Printf("        BTC: %s\n", btc)
+		fmt.Printf("        BTC: %s\n", byBtc)
 	}
 }
