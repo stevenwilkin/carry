@@ -27,6 +27,12 @@ type orderResponse struct {
 	} `json:"error"`
 }
 
+type addressResponse struct {
+	Result struct {
+		Address string `json:"address"`
+	} `json:"result"`
+}
+
 type requestMessage struct {
 	Method string                 `json:"method"`
 	Params map[string]interface{} `json:"params"`
