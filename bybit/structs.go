@@ -18,6 +18,15 @@ type orderResponse struct {
 	} `json:"result"`
 }
 
+type addressResponse struct {
+	Result struct {
+		Chains []struct {
+			ChainType      string `json:"chain_type"`
+			AddressDeposit string `json:"address_deposit"`
+		} `json:"chains"`
+	} `json:"result"`
+}
+
 type wsCommand struct {
 	Op   string   `json:"op"`
 	Args []string `json:"args"`

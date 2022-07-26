@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/stevenwilkin/carry/binance"
+	"github.com/stevenwilkin/carry/bybit"
 	"github.com/stevenwilkin/carry/deribit"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -19,6 +20,10 @@ func main() {
 		ApiId:     os.Getenv("DERIBIT_API_ID"),
 		ApiSecret: os.Getenv("DERIBIT_API_SECRET")}
 
+	by := &bybit.Bybit{
+		ApiKey:    os.Getenv("BYBIT_API_KEY"),
+		ApiSecret: os.Getenv("BYBIT_API_SECRET")}
+
 	btc, _ := b.GetAddress("BTC")
 	usdt, _ := b.GetAddress("USDT")
 
@@ -31,6 +36,12 @@ func main() {
 	btc, _ = d.GetAddress()
 	if btc != "" {
 		fmt.Println("Deribit")
+		fmt.Printf("        BTC: %s\n", btc)
+	}
+
+	btc, _ = by.GetAddress()
+	if btc != "" {
+		fmt.Println("Bybit  ")
 		fmt.Printf("        BTC: %s\n", btc)
 	}
 }
