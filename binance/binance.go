@@ -134,3 +134,22 @@ func (b *Binance) GetBalance() (float64, error) {
 
 	return usdt, nil
 }
+
+func (b *Binance) GetAddress(coin string) (string, error) {
+	network := "ETH"
+	if coin == "BTC" {
+		network = "BTC"
+	}
+	params := url.Values{"coin": {coin}, "network": {network}}
+
+	body, err := b.doRequest(
+		"GET", "/sapi/v1/capital/deposit/address", params, true)
+	if err != nil {
+		return "", err
+	}
+
+	var response addressResponse
+	json.Unmarshal(body, &response)
+
+	return response.Address, nil
+}

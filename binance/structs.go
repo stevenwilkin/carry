@@ -21,3 +21,7 @@ type accountResponse struct {
 type errorResponse struct {
 	Msg string `json:"msg"`
 }
+
+type addressResponse struct {
+	Address string `json:"address"`
+}
