@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -65,6 +67,9 @@ func main() {
 			log.Fatal(err)
 		}
 	}
+
+	log.Debug("Sleep")
+	time.Sleep(3 * time.Second)
 
 	log.Info("Done")
 }
