@@ -59,7 +59,7 @@ func (m model) View() string {
 
 	w := len("USDT:")
 	if len(m.futures) > 0 {
-		w = len("BTC-31MAR23:")
+		w = len("BTC-PERPETUAL:")
 	} else if m.btcusd != 0 {
 		w = len("BTCUSD:")
 	}
