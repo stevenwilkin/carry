@@ -140,7 +140,7 @@ func (b *Bybit) Trade(contracts int, buy, reduce bool, cb func(int)) error {
 				if b.canImprove(price, newBestPrice, buy) {
 					price = newBestPrice
 					if err = b.EditOrder(orderId, newBestPrice); err != nil {
-						return err
+						log.Warn(err)
 					}
 				}
 			}

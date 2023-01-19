@@ -130,7 +130,7 @@ func (d *Deribit) Trade(instrument string, contracts int, buy, reduce bool, cb f
 				if canImprove(price, newBestPrice, buy) {
 					price = newBestPrice
 					if err = d.EditOrder(orderId, contracts, price, reduce); err != nil {
-						return err
+						log.Warn(err)
 					}
 				}
 			}

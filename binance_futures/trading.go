@@ -161,7 +161,7 @@ func (b *BinanceFutures) Trade(contracts int, buy, reduce bool, cb func(int)) er
 				if canImprove(price, newBestPrice, buy) {
 					price = newBestPrice
 					if err = b.EditOrder(orderId, newBestPrice, buy); err != nil {
-						return err
+						log.Warn(err)
 					}
 				}
 			}
