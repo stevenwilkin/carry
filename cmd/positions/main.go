@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"time"
 
@@ -56,6 +57,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	var output string
+	total := m.usdt + float64(m.btcusd)
 
 	w := len("USDT:")
 	if len(m.futures) > 0 {
@@ -74,10 +76,13 @@ func (m model) View() string {
 	}
 
 	for _, position := range m.futures {
+		total += math.Abs(position.Size)
 		entry := fmt.Sprintf("%s %.0f\n",
 			width.Render(bold.Render(position.InstrumentName)+":"), position.Size)
 		output += entry
 	}
+
+	output += fmt.Sprintf("%s %s\n", width.Render(""), bold.Render(fmt.Sprintf("%.2f", total)))
 
 	return margin.Render(output)
 }
