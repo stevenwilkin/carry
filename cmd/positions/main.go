@@ -78,7 +78,7 @@ func (m model) View() string {
 	for _, position := range m.futures {
 		total += math.Abs(position.Size)
 		entry := fmt.Sprintf("%s %.0f\n",
-			width.Render(bold.Render(position.InstrumentName)+":"), position.Size)
+			width.Render(bold.Render(position.InstrumentName)+":"), math.Abs(position.Size))
 		output += entry
 	}
 
