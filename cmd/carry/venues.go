@@ -42,6 +42,10 @@ func newDeribit() *deribit.Deribit {
 			ApiId:     os.Getenv("DERIBIT_API_ID"),
 			ApiSecret: os.Getenv("DERIBIT_API_SECRET"),
 			Test:      testnet()}
+
+		if _, err := _deribit.AccessToken(); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	return _deribit

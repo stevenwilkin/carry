@@ -24,7 +24,7 @@ type Deribit struct {
 	expiresIn    time.Time
 }
 
-func (d *Deribit) accessToken() (string, error) {
+func (d *Deribit) AccessToken() (string, error) {
 	if d._accessToken != "" && d.expiresIn.After(time.Now()) {
 		return d._accessToken, nil
 	}
@@ -91,7 +91,7 @@ func (d *Deribit) get(path string, params url.Values, result interface{}) error 
 		return err
 	}
 
-	accessToken, err := d.accessToken()
+	accessToken, err := d.AccessToken()
 	if err != nil {
 		log.Error(err.Error())
 		return err
