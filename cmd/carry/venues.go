@@ -13,7 +13,7 @@ import (
 )
 
 var _deribit *deribit.Deribit
-var bfRemainder, dRemainder int
+var bfRemainder, dRemainder, bRemainder int
 
 func newBinance() *binance.Binance {
 	return &binance.Binance{
@@ -109,7 +109,32 @@ func binanceMarketTrader(buy bool) marketTrader {
 	b := newBinance()
 
 	return func(usdt int) {
-		if err := b.MarketOrder(float64(usdt), buy); err != nil {
+		// must be greater than 10
+		amount := usdt + bRemainder
+
+		if amount < 10 {
+			bRemainder = amount
+			amount = 0
+		} else {
+			bRemainder = 0
+		}
+
+		log.WithFields(log.Fields{
+			"venue":     "binance",
+			"usdt":      usdt,
+			"amount":    amount,
+			"remainder": bRemainder,
+		}).Debug("Market order")
+
+		if amount == 0 {
+			log.WithFields(log.Fields{
+				"venue":     "binance",
+				"remainder": bRemainder,
+			}).Info("Skipping market order")
+			return
+		}
+
+		if err := b.MarketOrder(float64(amount), buy); err != nil {
 			log.Fatal(err)
 		}
 	}
