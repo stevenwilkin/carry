@@ -64,7 +64,7 @@ func bybitMarketTrader() marketTrader {
 
 	return func(contracts int) {
 		if err := b.MarketOrder(contracts, true, true); err != nil {
-			log.Fatal(err)
+			log.Error(err)
 		}
 	}
 }
@@ -100,7 +100,7 @@ func deribitMarketTrader(contract string) marketTrader {
 			return
 		}
 		if err := d.MarketOrder(contract, contracts, true, true); err != nil {
-			log.Fatal(err)
+			log.Error(err)
 		}
 	}
 }
@@ -135,7 +135,7 @@ func binanceMarketTrader(buy bool) marketTrader {
 		}
 
 		if err := b.MarketOrder(float64(amount), buy); err != nil {
-			log.Fatal(err)
+			log.Error(err)
 		}
 	}
 }
@@ -164,7 +164,7 @@ func binanceFuturesMarketTrader() marketTrader {
 		}
 
 		if err := b.MarketOrder(contracts, true, true); err != nil {
-			log.Fatal(err)
+			log.Error(err)
 		}
 	}
 }
