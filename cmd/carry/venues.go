@@ -59,11 +59,11 @@ func bybitLimitTrader(buy bool) limitTrader {
 	}
 }
 
-func bybitMarketTrader() marketTrader {
+func bybitMarketTrader(buy bool) marketTrader {
 	b := newBybit()
 
 	return func(contracts int) {
-		if err := b.MarketOrder(contracts, true, true); err != nil {
+		if err := b.MarketOrder(contracts, buy, buy); err != nil {
 			log.Error(err)
 		}
 	}
@@ -77,7 +77,7 @@ func deribitLimitTrader(contract string, buy bool) limitTrader {
 	}
 }
 
-func deribitMarketTrader(contract string) marketTrader {
+func deribitMarketTrader(contract string, buy bool) marketTrader {
 	d := newDeribit()
 
 	return func(amount int) {
@@ -99,7 +99,7 @@ func deribitMarketTrader(contract string) marketTrader {
 			}).Info("Skipping market order")
 			return
 		}
-		if err := d.MarketOrder(contract, contracts, true, true); err != nil {
+		if err := d.MarketOrder(contract, contracts, buy, buy); err != nil {
 			log.Error(err)
 		}
 	}

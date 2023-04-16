@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -43,11 +44,11 @@ func main() {
 	} else if action == "roll" {
 		switch contract {
 		case "BTCUSD":
-			mt = bybitMarketTrader()
+			mt = bybitMarketTrader(true)
 		case "BTCUSD_PERP":
 			mt = binanceFuturesMarketTrader()
 		default:
-			mt = deribitMarketTrader(contract)
+			mt = deribitMarketTrader(contract, true)
 		}
 
 		switch rollToContract {
@@ -57,6 +58,21 @@ func main() {
 			lt = binanceFuturesLimitTrader(false)
 		default:
 			lt = deribitLimitTrader(rollToContract, false)
+		}
+	} else if action == "rollx" {
+		// roll from less liquid to more liquid contracts
+		if !strings.HasPrefix(contract, "BTC-") {
+			log.Fatal("Can only roll from Deribit")
+		}
+
+		lt = deribitLimitTrader(contract, true)
+
+		if rollToContract == "BTCUSD" {
+			mt = bybitMarketTrader(false)
+		} else if rollToContract == "BTCUSD_PERP" {
+			log.Fatal("Can not roll to Binance Futures")
+		} else {
+			mt = deribitMarketTrader(rollToContract, false)
 		}
 	}
 

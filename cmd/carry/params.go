@@ -5,6 +5,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -31,13 +32,13 @@ func initParams() {
 	}
 
 	if len(os.Args) < 4 {
-		log.Fatalf("Usage: %s up|down|roll PARAMS", os.Args[0])
+		log.Fatalf("Usage: %s up|down|roll|rollx PARAMS", os.Args[0])
 	}
 
 	params = os.Args[1:]
 
 	action, params = params[0], params[1:]
-	if matched, _ := regexp.MatchString("^(up|down|roll)$", action); !matched {
+	if matched, _ := regexp.MatchString("^(up|down|roll|rollx)$", action); !matched {
 		log.Fatalf("Invalid action: %s", action)
 	}
 
@@ -46,7 +47,7 @@ func initParams() {
 		log.Fatalf("Invalid contract: %s", contract)
 	}
 
-	if action == "roll" {
+	if strings.HasPrefix(action, "roll") {
 		rollToContract, params = params[0], params[1:]
 		if !validContract(rollToContract) {
 			log.Fatalf("Invalid contract: %s", rollToContract)
