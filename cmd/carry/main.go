@@ -33,30 +33,21 @@ func main() {
 		buyContracts := action == "down"
 		mt = binanceMarketTrader(!buyContracts)
 
-		switch contract {
-		case "BTCUSD":
+		if contract == "BTCUSD" {
 			lt = bybitLimitTrader(buyContracts)
-		case "BTCUSD_PERP":
-			lt = binanceFuturesLimitTrader(buyContracts)
-		default:
+		} else {
 			lt = deribitLimitTrader(contract, buyContracts)
 		}
 	} else if action == "roll" {
-		switch contract {
-		case "BTCUSD":
+		if contract == "BTCUSD" {
 			mt = bybitMarketTrader(true)
-		case "BTCUSD_PERP":
-			mt = binanceFuturesMarketTrader()
-		default:
+		} else {
 			mt = deribitMarketTrader(contract, true)
 		}
 
-		switch rollToContract {
-		case "BTCUSD":
+		if rollToContract == "BTCUSD" {
 			lt = bybitLimitTrader(false)
-		case "BTCUSD_PERP":
-			lt = binanceFuturesLimitTrader(false)
-		default:
+		} else {
 			lt = deribitLimitTrader(rollToContract, false)
 		}
 	} else if action == "rollx" {
@@ -69,8 +60,6 @@ func main() {
 
 		if rollToContract == "BTCUSD" {
 			mt = bybitMarketTrader(false)
-		} else if rollToContract == "BTCUSD_PERP" {
-			log.Fatal("Can not roll to Binance Futures")
 		} else {
 			mt = deribitMarketTrader(rollToContract, false)
 		}

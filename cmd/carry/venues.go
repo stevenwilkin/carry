@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/stevenwilkin/carry/binance"
-	"github.com/stevenwilkin/carry/binance_futures"
 	"github.com/stevenwilkin/carry/bybit"
 	"github.com/stevenwilkin/carry/deribit"
 
@@ -13,20 +12,12 @@ import (
 )
 
 var _deribit *deribit.Deribit
-var bfRemainder, dRemainder, bRemainder int
+var dRemainder, bRemainder int
 
 func newBinance() *binance.Binance {
 	return &binance.Binance{
 		ApiKey:    os.Getenv("BINANCE_API_KEY"),
 		ApiSecret: os.Getenv("BINANCE_API_SECRET")}
-}
-
-// NOTE: contract size is 100 USD
-func newBinanceFutures() *binance_futures.BinanceFutures {
-	return &binance_futures.BinanceFutures{
-		ApiKey:    os.Getenv("BINANCE_API_KEY"),
-		ApiSecret: os.Getenv("BINANCE_API_SECRET"),
-		Testnet:   testnet()}
 }
 
 func newBybit() *bybit.Bybit {
@@ -135,35 +126,6 @@ func binanceMarketTrader(buy bool) marketTrader {
 		}
 
 		if err := b.MarketOrder(float64(amount), buy); err != nil {
-			log.Error(err)
-		}
-	}
-}
-
-func binanceFuturesLimitTrader(buy bool) limitTrader {
-	b := newBinanceFutures()
-
-	return func(amount int, mt marketTrader) error {
-		return b.Trade(amount/100, buy, buy, mt)
-	}
-}
-
-func binanceFuturesMarketTrader() marketTrader {
-	b := newBinanceFutures()
-
-	return func(amount int) {
-		contracts := (amount + bfRemainder) / 100
-		bfRemainder = (amount + bfRemainder) % 100
-
-		if contracts == 0 {
-			log.WithFields(log.Fields{
-				"venue":     "binance_f",
-				"remainder": bfRemainder,
-			}).Debug("Amount below contract size")
-			return
-		}
-
-		if err := b.MarketOrder(contracts, true, true); err != nil {
 			log.Error(err)
 		}
 	}
