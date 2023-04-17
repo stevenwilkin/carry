@@ -1,7 +1,10 @@
 package main
 
 import (
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -9,6 +12,7 @@ import (
 
 type marketTrader func(amount int)
 type limitTrader func(amount int, mt marketTrader) error
+type orderCanceler func()
 
 var (
 	params                           []string
@@ -16,10 +20,24 @@ var (
 	usd, rounds                      int
 	lt                               limitTrader
 	mt                               marketTrader
+	oc                               orderCanceler
 )
+
+func trapSigInt() {
+	go func() {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+		<-c
+		if oc != nil {
+			oc()
+		}
+		os.Exit(0)
+	}()
+}
 
 func main() {
 	initParams()
+	trapSigInt()
 
 	log.WithFields(log.Fields{
 		"action":           action,
@@ -34,9 +52,9 @@ func main() {
 		mt = binanceMarketTrader(!buyContracts)
 
 		if contract == "BTCUSD" {
-			lt = bybitLimitTrader(buyContracts)
+			lt, oc = bybitLimitTrader(buyContracts)
 		} else {
-			lt = deribitLimitTrader(contract, buyContracts)
+			lt, oc = deribitLimitTrader(contract, buyContracts)
 		}
 	} else if action == "roll" {
 		if contract == "BTCUSD" {
@@ -46,9 +64,9 @@ func main() {
 		}
 
 		if rollToContract == "BTCUSD" {
-			lt = bybitLimitTrader(false)
+			lt, oc = bybitLimitTrader(false)
 		} else {
-			lt = deribitLimitTrader(rollToContract, false)
+			lt, oc = deribitLimitTrader(rollToContract, false)
 		}
 	} else if action == "rollx" {
 		// roll from less liquid to more liquid contracts
@@ -56,7 +74,7 @@ func main() {
 			log.Fatal("Can only roll from Deribit")
 		}
 
-		lt = deribitLimitTrader(contract, true)
+		lt, oc = deribitLimitTrader(contract, true)
 
 		if rollToContract == "BTCUSD" {
 			mt = bybitMarketTrader(false)

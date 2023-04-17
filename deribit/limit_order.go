@@ -74,3 +74,17 @@ func (d *Deribit) EditOrder(orderId string, amount int, price float64, reduce bo
 
 	return nil
 }
+
+func (d *Deribit) CancelOrders(instrument string) {
+	log.WithFields(log.Fields{
+		"venue":    "deribit",
+		"contract": instrument,
+	}).Info("Cancelling orders")
+
+	v := url.Values{"instrument_name": {instrument}}
+	path := "/api/v2/private/cancel_all_by_instrument"
+
+	if err := d.get(path, v, nil); err != nil {
+		log.Error(err)
+	}
+}

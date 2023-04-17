@@ -42,12 +42,13 @@ func newDeribit() *deribit.Deribit {
 	return _deribit
 }
 
-func bybitLimitTrader(buy bool) limitTrader {
+func bybitLimitTrader(buy bool) (limitTrader, orderCanceler) {
 	b := newBybit()
 
 	return func(amount int, mt marketTrader) error {
-		return b.Trade(amount, buy, buy, mt)
-	}
+			return b.Trade(amount, buy, buy, mt)
+		}, func() {
+		}
 }
 
 func bybitMarketTrader(buy bool) marketTrader {
@@ -60,12 +61,15 @@ func bybitMarketTrader(buy bool) marketTrader {
 	}
 }
 
-func deribitLimitTrader(contract string, buy bool) limitTrader {
+func deribitLimitTrader(contract string, buy bool) (limitTrader, orderCanceler) {
 	d := newDeribit()
 
 	return func(amount int, mt marketTrader) error {
-		return d.Trade(contract, amount, buy, buy, mt)
-	}
+			return d.Trade(contract, amount, buy, buy, mt)
+		},
+		func() {
+			d.CancelOrders(contract)
+		}
 }
 
 func deribitMarketTrader(contract string, buy bool) marketTrader {
