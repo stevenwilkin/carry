@@ -48,6 +48,7 @@ func bybitLimitTrader(buy bool) (limitTrader, orderCanceler) {
 	return func(amount int, mt marketTrader) error {
 			return b.Trade(amount, buy, buy, mt)
 		}, func() {
+			b.CancelOrders()
 		}
 }
 

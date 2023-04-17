@@ -67,3 +67,21 @@ func (b *Bybit) EditOrder(id string, price float64) error {
 
 	return nil
 }
+
+func (b *Bybit) CancelOrders() {
+	log.WithField("venue", "bybit").Info("Cancelling orders")
+
+	params := map[string]interface{}{
+		"category": "inverse",
+		"symbol":   "BTCUSD"}
+
+	var result orderResponse
+	if err := b.post("/v5/order/cancel-all", params, &result); err != nil {
+		log.Error(err)
+		return
+	}
+
+	if result.RetCode != 0 {
+		log.Error(result.RetMsg)
+	}
+}
