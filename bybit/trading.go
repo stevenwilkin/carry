@@ -123,7 +123,7 @@ func (b *Bybit) Trade(contracts int, buy, reduce bool, cb func(int)) error {
 					"venue":  "bybit",
 					"amount": delta,
 				}).Debug("Callback")
-				go cb(delta)
+				cb(delta)
 				totalCompleted = completed
 			}
 		case <-chCancels:

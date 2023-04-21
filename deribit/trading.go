@@ -115,7 +115,7 @@ func (d *Deribit) Trade(instrument string, contracts int, buy, reduce bool, cb f
 					"venue":  "deribit",
 					"amount": delta,
 				}).Debug("Callback")
-				go cb(int(delta))
+				cb(int(delta))
 				totalCompleted = completed
 			}
 		case <-ticker.C:

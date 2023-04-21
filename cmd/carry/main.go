@@ -4,8 +4,8 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -21,6 +21,7 @@ var (
 	lt                               limitTrader
 	mt                               marketTrader
 	oc                               orderCanceler
+	wg                               sync.WaitGroup
 )
 
 func trapSigInt() {
@@ -33,6 +34,16 @@ func trapSigInt() {
 		}
 		os.Exit(0)
 	}()
+}
+
+func processCb(cb marketTrader) marketTrader {
+	return func(amount int) {
+		wg.Add(1)
+		go func() {
+			cb(amount)
+			wg.Done()
+		}()
+	}
 }
 
 func main() {
@@ -86,13 +97,13 @@ func main() {
 	for i := 0; i < rounds; i++ {
 		log.WithField("n", i+1).Info("Round")
 
-		if err := lt(usd, mt); err != nil {
+		if err := lt(usd, processCb(mt)); err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	log.Debug("Sleep")
-	time.Sleep(3 * time.Second)
+	log.Debug("Waiting on callbacks")
+	wg.Wait()
 
 	log.Info("Done")
 }
