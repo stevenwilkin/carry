@@ -12,7 +12,6 @@ import (
 )
 
 var _deribit *deribit.Deribit
-var dRemainder, bRemainder int
 
 func newBinance() *binance.Binance {
 	return &binance.Binance{
@@ -74,6 +73,7 @@ func deribitLimitTrader(contract string, buy bool) (limitTrader, orderCanceler) 
 }
 
 func deribitMarketTrader(contract string, buy bool) marketTrader {
+	var dRemainder int
 	d := newDeribit()
 
 	return func(amount int) {
@@ -102,6 +102,7 @@ func deribitMarketTrader(contract string, buy bool) marketTrader {
 }
 
 func binanceMarketTrader(buy bool) marketTrader {
+	var bRemainder int
 	b := newBinance()
 
 	return func(usdt int) {
