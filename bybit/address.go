@@ -7,7 +7,7 @@ import (
 func (b *Bybit) GetAddress() (string, error) {
 	var response addressResponse
 
-	err := b.get("/asset/v1/private/deposit/address",
+	err := b.get("/v5/asset/deposit/query-address",
 		map[string]string{"coin": "BTC"}, &response)
 
 	if err != nil {

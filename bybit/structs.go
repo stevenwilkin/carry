@@ -21,8 +21,8 @@ type orderResponse struct {
 type addressResponse struct {
 	Result struct {
 		Chains []struct {
-			ChainType      string `json:"chain_type"`
-			AddressDeposit string `json:"address_deposit"`
+			ChainType      string `json:"chainType"`
+			AddressDeposit string `json:"addressDeposit"`
 		} `json:"chains"`
 	} `json:"result"`
 }
