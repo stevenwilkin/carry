@@ -1,14 +1,26 @@
 package bybit
 
-func (b *Bybit) GetSize() int {
-	var response positionResponse
+import (
+	"net/url"
+	"strconv"
+)
 
-	err := b.get("/v2/private/position/list",
-		map[string]string{"symbol": "BTCUSD"}, &response)
+func (b *Bybit) GetSize() int {
+	params := url.Values{
+		"category": {"inverse"},
+		"symbol":   {"BTCUSD"}}
+
+	var response positionResponse
+	err := b.get("/v5/position/list", params, &response)
 
 	if err != nil {
 		return 0
 	}
 
-	return response.Result.Size
+	if len(response.Result.List) != 1 {
+		return 0
+	}
+
+	size, _ := strconv.Atoi(response.Result.List[0].Size)
+	return size
 }

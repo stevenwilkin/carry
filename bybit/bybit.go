@@ -47,30 +47,9 @@ func (b *Bybit) timestamp() string {
 	return strconv.FormatInt((time.Now().UnixNano() / int64(time.Millisecond)), 10)
 }
 
-func (b *Bybit) signedUrl(path string, addParams map[string]string) string {
-	params := map[string]interface{}{
-		"api_key":   b.ApiKey,
-		"timestamp": b.timestamp()}
-
-	for k, v := range addParams {
-		params[k] = v
-	}
-
-	keys := make([]string, len(params))
-	i := 0
-	query := ""
-	for k, _ := range params {
-		keys[i] = k
-		i++
-	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		query += fmt.Sprintf("%s=%v&", k, params[k])
-	}
-	query = query[0 : len(query)-1]
-	h := hmac.New(sha256.New, []byte(b.ApiSecret))
-	io.WriteString(h, query)
-	query += fmt.Sprintf("&sign=%x", h.Sum(nil))
+func (b *Bybit) get(path string, params url.Values, result interface{}) error {
+	query := params.Encode()
+	timestamp := b.timestamp()
 
 	u := url.URL{
 		Scheme:   "https",
@@ -78,13 +57,22 @@ func (b *Bybit) signedUrl(path string, addParams map[string]string) string {
 		Path:     path,
 		RawQuery: query}
 
-	return u.String()
-}
+	req, err := http.NewRequest("GET", u.String(), nil)
+	if err != nil {
+		return err
+	}
 
-func (b *Bybit) get(path string, params map[string]string, result interface{}) error {
-	u := b.signedUrl(path, params)
+	h := hmac.New(sha256.New, []byte(b.ApiSecret))
+	io.WriteString(h, timestamp+b.ApiKey+query)
+	signature := fmt.Sprintf("%x", h.Sum(nil))
 
-	resp, err := http.Get(u)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-BAPI-API-KEY", b.ApiKey)
+	req.Header.Set("X-BAPI-SIGN", signature)
+	req.Header.Set("X-BAPI-TIMESTAMP", timestamp)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}

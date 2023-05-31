@@ -6,7 +6,9 @@ import (
 
 type positionResponse struct {
 	Result struct {
-		Size int `json:"size"`
+		List []struct {
+			Size string `json:"size"`
+		} `json:"list"`
 	} `json:"result"`
 }
 
