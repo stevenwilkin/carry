@@ -15,10 +15,11 @@ func (b *Bybit) MarketOrder(contracts int, buy, reduce bool) error {
 	}).Debug("Placing market order")
 
 	params := map[string]interface{}{
-		"symbol":        "BTCUSD",
-		"order_type":    "Market",
-		"qty":           strconv.Itoa(contracts),
-		"time_in_force": "GoodTillCancel"}
+		"category":    "inverse",
+		"symbol":      "BTCUSD",
+		"orderType":   "Market",
+		"qty":         strconv.Itoa(contracts),
+		"timeInForce": "GTC"}
 
 	if buy {
 		params["side"] = "Buy"
@@ -27,11 +28,11 @@ func (b *Bybit) MarketOrder(contracts int, buy, reduce bool) error {
 	}
 
 	if reduce {
-		params["reduce_only"] = true
+		params["reduceOnly"] = true
 	}
 
 	var result orderResponse
-	if err := b.post("/v2/private/order/create", params, &result); err != nil {
+	if err := b.post("/v5/order/create", params, &result); err != nil {
 		return err
 	}
 

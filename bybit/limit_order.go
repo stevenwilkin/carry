@@ -16,11 +16,12 @@ func (b *Bybit) LimitOrder(contracts int, price float64, buy, reduce bool) (stri
 	}).Debug("Placing order")
 
 	params := map[string]interface{}{
-		"symbol":        "BTCUSD",
-		"order_type":    "Limit",
-		"qty":           strconv.Itoa(contracts),
-		"price":         strconv.FormatFloat(price, 'f', 2, 64),
-		"time_in_force": "PostOnly"}
+		"category":    "inverse",
+		"symbol":      "BTCUSD",
+		"orderType":   "Limit",
+		"qty":         strconv.Itoa(contracts),
+		"price":       strconv.FormatFloat(price, 'f', 2, 64),
+		"timeInForce": "PostOnly"}
 
 	if buy {
 		params["side"] = "Buy"
@@ -29,11 +30,11 @@ func (b *Bybit) LimitOrder(contracts int, price float64, buy, reduce bool) (stri
 	}
 
 	if reduce {
-		params["reduce_only"] = true
+		params["reduceOnly"] = true
 	}
 
 	var result orderResponse
-	if err := b.post("/v2/private/order/create", params, &result); err != nil {
+	if err := b.post("/v5/order/create", params, &result); err != nil {
 		return "", err
 	}
 
@@ -52,12 +53,13 @@ func (b *Bybit) EditOrder(id string, price float64) error {
 	}).Debug("Updating order")
 
 	params := map[string]interface{}{
-		"order_id":  id,
-		"symbol":    "BTCUSD",
-		"p_r_price": strconv.FormatFloat(price, 'f', 2, 64)}
+		"category": "inverse",
+		"orderId":  id,
+		"symbol":   "BTCUSD",
+		"price":    strconv.FormatFloat(price, 'f', 2, 64)}
 
 	var result orderResponse
-	if err := b.post("/v2/private/order/replace", params, &result); err != nil {
+	if err := b.post("/v5/order/amend", params, &result); err != nil {
 		return err
 	}
 

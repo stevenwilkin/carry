@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"sort"
 	"strconv"
 	"sync"
 	"time"
@@ -88,29 +87,7 @@ func (b *Bybit) get(path string, params url.Values, result interface{}) error {
 	return nil
 }
 
-func getSignature(params map[string]interface{}, key string) string {
-	keys := make([]string, len(params))
-	i := 0
-	_val := ""
-	for k, _ := range params {
-		keys[i] = k
-		i++
-	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		_val += fmt.Sprintf("%s=%v&", k, params[k])
-	}
-	_val = _val[0 : len(_val)-1]
-	h := hmac.New(sha256.New, []byte(key))
-	io.WriteString(h, _val)
-	return fmt.Sprintf("%x", h.Sum(nil))
-}
-
 func (b *Bybit) post(path string, params map[string]interface{}, result interface{}) error {
-	params["api_key"] = b.ApiKey
-	params["timestamp"] = b.timestamp()
-	params["sign"] = getSignature(params, b.ApiSecret)
-
 	jsonRequest, err := json.Marshal(params)
 	if err != nil {
 		return err
@@ -126,8 +103,17 @@ func (b *Bybit) post(path string, params map[string]interface{}, result interfac
 		return err
 	}
 
+	timestamp := b.timestamp()
+
+	h := hmac.New(sha256.New, []byte(b.ApiSecret))
+	io.WriteString(h, timestamp+b.ApiKey+string(jsonRequest))
+	signature := fmt.Sprintf("%x", h.Sum(nil))
+
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-BAPI-API-KEY", b.ApiKey)
+	req.Header.Set("X-BAPI-SIGN", signature)
+	req.Header.Set("X-BAPI-TIMESTAMP", timestamp)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

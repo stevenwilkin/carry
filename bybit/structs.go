@@ -13,10 +13,10 @@ type positionResponse struct {
 }
 
 type orderResponse struct {
-	RetCode int    `json:"ret_code"`
-	RetMsg  string `json:"ret_msg"`
+	RetCode int    `json:"retCode"`
+	RetMsg  string `json:"retMsg"`
 	Result  struct {
-		OrderId string `json:"order_id"`
+		OrderId string `json:"orderId"`
 	} `json:"result"`
 }
 
