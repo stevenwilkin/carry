@@ -88,7 +88,7 @@ func (m model) View() string {
 }
 
 func main() {
-	p := tea.NewProgram(model{}, tea.WithAltScreen())
+	p := tea.NewProgram(model{}, tea.WithAltScreen(), tea.WithFPS(10))
 
 	b = &binance.Binance{
 		ApiKey:    os.Getenv("BINANCE_API_KEY"),
