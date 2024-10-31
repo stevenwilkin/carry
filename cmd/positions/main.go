@@ -20,7 +20,6 @@ var (
 	by     *bybit.Bybit
 	d      *deribit.Deribit
 	margin = lipgloss.NewStyle().Margin(1, 2, 0, 2)
-	bold   = lipgloss.NewStyle().Bold(true)
 )
 
 type usdtMsg float64
@@ -68,21 +67,21 @@ func (m model) View() string {
 	width := lipgloss.NewStyle().Width(w)
 
 	if m.usdt != 0 {
-		output += fmt.Sprintf("%s %6.0f\n", width.Render(bold.Render("USDT")+":"), m.usdt)
+		output += fmt.Sprintf("%s %6.0f\n", width.Render("USDT:"), m.usdt)
 	}
 
 	if m.btcusd != 0 {
-		output += fmt.Sprintf("%s %6d\n", width.Render(bold.Render("BTCUSD")+":"), m.btcusd)
+		output += fmt.Sprintf("%s %6d\n", width.Render("BTCUSD:"), m.btcusd)
 	}
 
 	for _, position := range m.futures {
 		total += math.Abs(position.Size)
 		entry := fmt.Sprintf("%s %6.0f\n",
-			width.Render(bold.Render(position.InstrumentName)+":"), math.Abs(position.Size))
+			width.Render(position.InstrumentName+":"), math.Abs(position.Size))
 		output += entry
 	}
 
-	output += fmt.Sprintf("%s %s\n", width.Render(""), bold.Render(fmt.Sprintf("%6.0f", total)))
+	output += fmt.Sprintf("%s %s\n", width.Render(""), fmt.Sprintf("%6.0f", total))
 
 	return margin.Render(output)
 }
