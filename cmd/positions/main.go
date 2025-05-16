@@ -10,85 +10,53 @@ import (
 	"github.com/stevenwilkin/carry/bybit"
 	"github.com/stevenwilkin/carry/deribit"
 
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	_ "github.com/joho/godotenv/autoload"
 )
 
 var (
-	b      *binance.Binance
-	by     *bybit.Bybit
-	d      *deribit.Deribit
-	margin = lipgloss.NewStyle().Margin(1, 2, 0, 2)
-)
+	b  *binance.Binance
+	by *bybit.Bybit
+	d  *deribit.Deribit
 
-type usdtMsg float64
-type btcusdMsg int
-type futuresMsg []deribit.Position
-
-type model struct {
 	usdt    float64
 	btcusd  int
 	futures []deribit.Position
+)
+
+func width(s string, x int) string {
+	return fmt.Sprintf(fmt.Sprintf("%%-%ds", x), s)
 }
 
-func (m model) Init() tea.Cmd {
-	return nil
-}
+func display() {
+	fmt.Println("\033[2J\033[H\033[?25l") // clear screen, move cursor to top of screen, hide cursor
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.Type {
-		case tea.KeyCtrlC:
-			return m, tea.Quit
-		}
-	case usdtMsg:
-		m.usdt = float64(msg)
-	case btcusdMsg:
-		m.btcusd = int(msg)
-	case futuresMsg:
-		m.futures = []deribit.Position(msg)
-	}
-
-	return m, nil
-}
-
-func (m model) View() string {
-	var output string
-	total := m.usdt + float64(m.btcusd)
+	total := usdt + float64(btcusd)
 
 	w := len("USDT:")
-	if len(m.futures) > 0 {
+	if len(futures) > 0 {
 		w = len("BTC-PERPETUAL:")
-	} else if m.btcusd != 0 {
+	} else if btcusd != 0 {
 		w = len("BTCUSD:")
 	}
-	width := lipgloss.NewStyle().Width(w)
 
-	if m.usdt != 0 {
-		output += fmt.Sprintf("%s %6.0f\n", width.Render("USDT:"), m.usdt)
+	if usdt != 0 {
+		fmt.Printf("  %s %6.0f\n", width("USDT:", w), usdt)
 	}
 
-	if m.btcusd != 0 {
-		output += fmt.Sprintf("%s %6d\n", width.Render("BTCUSD:"), m.btcusd)
+	if btcusd != 0 {
+		fmt.Printf("  %s %6d\n", width("BTCUSD:", w), btcusd)
 	}
 
-	for _, position := range m.futures {
+	for _, position := range futures {
 		total += math.Abs(position.Size)
-		entry := fmt.Sprintf("%s %6.0f\n",
-			width.Render(position.InstrumentName+":"), math.Abs(position.Size))
-		output += entry
+		fmt.Printf("  %s %6.0f\n",
+			width(position.InstrumentName+":", w), math.Abs(position.Size))
 	}
 
-	output += fmt.Sprintf("%s %s\n", width.Render(""), fmt.Sprintf("%6.0f", total))
-
-	return margin.Render(output)
+	fmt.Printf("  %s %6.0f\n", width("", w), total)
 }
 
 func main() {
-	p := tea.NewProgram(model{}, tea.WithAltScreen(), tea.WithFPS(10))
-
 	b = &binance.Binance{
 		ApiKey:    os.Getenv("BINANCE_API_KEY"),
 		ApiSecret: os.Getenv("BINANCE_API_SECRET")}
@@ -103,14 +71,14 @@ func main() {
 
 	go func() {
 		t := time.NewTicker(1 * time.Second)
+		var err error
 
 		for {
-			usdt, err := b.GetBalance()
+			usdt, err = b.GetBalance()
 			if err != nil {
 				panic(err)
 			}
 
-			p.Send(usdtMsg(usdt))
 			<-t.C
 		}
 	}()
@@ -119,9 +87,7 @@ func main() {
 		t := time.NewTicker(1 * time.Second)
 
 		for {
-			btcusd := by.GetSize()
-
-			p.Send(btcusdMsg(btcusd))
+			btcusd = by.GetSize()
 			<-t.C
 		}
 	}()
@@ -130,15 +96,15 @@ func main() {
 		t := time.NewTicker(1 * time.Second)
 
 		for {
-			futures := d.GetPositions()
-
-			p.Send(futuresMsg(futures))
+			futures = d.GetPositions()
 			<-t.C
 		}
 	}()
 
-	if err := p.Start(); err != nil {
-		fmt.Printf("Error: %v", err)
-		os.Exit(1)
+	t := time.NewTicker(100 * time.Millisecond)
+
+	for {
+		display()
+		<-t.C
 	}
 }
