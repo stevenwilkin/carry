@@ -56,6 +56,22 @@ func display() {
 	fmt.Printf("  %s %6.0f\n", width("", w), total)
 }
 
+func poll[T any](f func() (T, error), p func(x T)) {
+	go func() {
+		t := time.NewTicker(1 * time.Second)
+
+		for {
+			result, err := f()
+			if err != nil {
+				panic(err)
+			}
+
+			p(result)
+			<-t.C
+		}
+	}()
+}
+
 func main() {
 	b = &binance.Binance{
 		ApiKey:    os.Getenv("BINANCE_API_KEY"),
@@ -69,19 +85,9 @@ func main() {
 		ApiId:     os.Getenv("DERIBIT_API_ID"),
 		ApiSecret: os.Getenv("DERIBIT_API_SECRET")}
 
-	go func() {
-		t := time.NewTicker(1 * time.Second)
-		var err error
-
-		for {
-			usdt, err = b.GetBalance()
-			if err != nil {
-				panic(err)
-			}
-
-			<-t.C
-		}
-	}()
+	poll(b.GetBalance, func(x float64) {
+		usdt = x
+	})
 
 	go func() {
 		t := time.NewTicker(1 * time.Second)
