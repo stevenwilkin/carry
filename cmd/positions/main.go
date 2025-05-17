@@ -89,23 +89,13 @@ func main() {
 		usdt = x
 	})
 
-	go func() {
-		t := time.NewTicker(1 * time.Second)
+	poll(by.GetSize, func(x int) {
+		btcusd = x
+	})
 
-		for {
-			btcusd = by.GetSize()
-			<-t.C
-		}
-	}()
-
-	go func() {
-		t := time.NewTicker(1 * time.Second)
-
-		for {
-			futures = d.GetPositions()
-			<-t.C
-		}
-	}()
+	poll(d.GetPositions, func(x []deribit.Position) {
+		futures = x
+	})
 
 	t := time.NewTicker(100 * time.Millisecond)
 

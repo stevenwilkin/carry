@@ -6,14 +6,14 @@ import (
 	"time"
 )
 
-func (d *Deribit) GetPositions() []Position {
+func (d *Deribit) GetPositions() ([]Position, error) {
 	var response positionsResponse
 
 	err := d.get("/api/v2/private/get_positions",
 		url.Values{"currency": {"BTC"}, "kind": {"future"}}, &response)
 
 	if err != nil {
-		return []Position{}
+		return []Position{}, err
 	}
 
 	timestamps := []int{}
@@ -47,5 +47,5 @@ func (d *Deribit) GetPositions() []Position {
 		result[i] = unsorted[timestamp]
 	}
 
-	return result
+	return result, nil
 }
