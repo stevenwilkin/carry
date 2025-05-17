@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"sync"
 	"time"
 
@@ -161,4 +162,10 @@ func (d *Deribit) subscribe(channels []string) (*websocket.Conn, error) {
 	}()
 
 	return c, nil
+}
+
+func NewDeribitFromEnv() *Deribit {
+	return &Deribit{
+		ApiId:     os.Getenv("DERIBIT_API_ID"),
+		ApiSecret: os.Getenv("DERIBIT_API_SECRET")}
 }

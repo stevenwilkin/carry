@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"math"
-	"os"
 	"time"
 
 	"github.com/stevenwilkin/carry/binance"
@@ -73,17 +72,9 @@ func poll[T any](f func() (T, error), p func(x T)) {
 }
 
 func main() {
-	b = &binance.Binance{
-		ApiKey:    os.Getenv("BINANCE_API_KEY"),
-		ApiSecret: os.Getenv("BINANCE_API_SECRET")}
-
-	by = &bybit.Bybit{
-		ApiKey:    os.Getenv("BYBIT_API_KEY"),
-		ApiSecret: os.Getenv("BYBIT_API_SECRET")}
-
-	d = &deribit.Deribit{
-		ApiId:     os.Getenv("DERIBIT_API_ID"),
-		ApiSecret: os.Getenv("DERIBIT_API_SECRET")}
+	b = binance.NewBinanceFromEnv()
+	by = bybit.NewBybitFromEnv()
+	d = deribit.NewDeribitFromEnv()
 
 	poll(b.GetBalance, func(x float64) {
 		usdt = x

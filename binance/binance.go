@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"time"
 
@@ -152,4 +153,10 @@ func (b *Binance) GetAddress(coin string) (string, error) {
 	json.Unmarshal(body, &response)
 
 	return response.Address, nil
+}
+
+func NewBinanceFromEnv() *Binance {
+	return &Binance{
+		ApiKey:    os.Getenv("BINANCE_API_KEY"),
+		ApiSecret: os.Getenv("BINANCE_API_SECRET")}
 }

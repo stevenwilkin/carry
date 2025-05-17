@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -162,4 +163,11 @@ func (b *Bybit) subscribe(channels []string) (*websocket.Conn, error) {
 	}
 
 	return c, nil
+}
+
+func NewBybitFromEnv() *Bybit {
+	return &Bybit{
+		ApiKey:    os.Getenv("BYBIT_API_KEY"),
+		ApiSecret: os.Getenv("BYBIT_API_SECRET")}
+
 }
