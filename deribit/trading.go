@@ -89,11 +89,9 @@ func (d *Deribit) Trade(instrument string, contracts int, buy, reduce bool, cb f
 		"reduce":     reduce,
 	}).Info("Trade")
 
-	d.o.Do(func() {
-		if err := d.SubscribeToOrderBook(instrument); err != nil {
-			log.Fatal(err)
-		}
-	})
+	if err := d.SubscribeToOrderBook(instrument); err != nil {
+		log.Fatal(err)
+	}
 
 	var price, newBestPrice, totalCompleted float64
 	var orderId string

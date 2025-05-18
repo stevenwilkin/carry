@@ -67,10 +67,4 @@ func initParams() {
 	if usd == 0 {
 		log.Fatal("Number of contracts cannot be zero")
 	}
-
-	rounds = 1
-	if len(params) > 0 {
-		roundsFloat, _ := strconv.ParseFloat(params[0], 64)
-		rounds = int(math.Abs(roundsFloat))
-	}
 }

@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -20,7 +19,6 @@ type Deribit struct {
 	Test         bool
 	Bid          float64
 	Ask          float64
-	o            sync.Once
 	_accessToken string
 	expiresIn    time.Time
 }

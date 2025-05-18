@@ -17,7 +17,7 @@ type orderCanceler func()
 var (
 	params                           []string
 	action, contract, rollToContract string
-	usd, rounds                      int
+	usd                              int
 	lt                               limitTrader
 	mt                               marketTrader
 	oc                               orderCanceler
@@ -55,7 +55,6 @@ func main() {
 		"contract":         contract,
 		"roll_to_contract": rollToContract,
 		"usd":              usd,
-		"rounds":           rounds,
 	}).Debug("Params")
 
 	if action == "up" || action == "down" {
@@ -94,12 +93,8 @@ func main() {
 		}
 	}
 
-	for i := 0; i < rounds; i++ {
-		log.WithField("n", i+1).Info("Round")
-
-		if err := lt(usd, processCb(mt)); err != nil {
-			log.Fatal(err)
-		}
+	if err := lt(usd, processCb(mt)); err != nil {
+		log.Fatal(err)
 	}
 
 	log.Debug("Waiting on callbacks")
