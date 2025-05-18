@@ -168,6 +168,7 @@ func (b *Bybit) subscribe(channels []string) (*websocket.Conn, error) {
 func NewBybitFromEnv() *Bybit {
 	return &Bybit{
 		ApiKey:    os.Getenv("BYBIT_API_KEY"),
-		ApiSecret: os.Getenv("BYBIT_API_SECRET")}
+		ApiSecret: os.Getenv("BYBIT_API_SECRET"),
+		Testnet:   os.Getenv("TESTNET") != ""}
 
 }

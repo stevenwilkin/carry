@@ -114,5 +114,6 @@ func (d *Deribit) subscribe(channels []string) (*websocket.Conn, error) {
 func NewDeribitFromEnv() *Deribit {
 	return &Deribit{
 		ApiId:     os.Getenv("DERIBIT_API_ID"),
-		ApiSecret: os.Getenv("DERIBIT_API_SECRET")}
+		ApiSecret: os.Getenv("DERIBIT_API_SECRET"),
+		Test:      os.Getenv("TESTNET") != ""}
 }

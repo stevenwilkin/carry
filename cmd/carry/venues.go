@@ -1,8 +1,6 @@
 package main
 
 import (
-	"os"
-
 	"github.com/stevenwilkin/carry/binance"
 	"github.com/stevenwilkin/carry/bybit"
 	"github.com/stevenwilkin/carry/deribit"
@@ -11,28 +9,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func newBinance() *binance.Binance {
-	return &binance.Binance{
-		ApiKey:    os.Getenv("BINANCE_API_KEY"),
-		ApiSecret: os.Getenv("BINANCE_API_SECRET")}
-}
-
-func newBybit() *bybit.Bybit {
-	return &bybit.Bybit{
-		ApiKey:    os.Getenv("BYBIT_API_KEY"),
-		ApiSecret: os.Getenv("BYBIT_API_SECRET"),
-		Testnet:   testnet()}
-}
-
-func newDeribit() *deribit.Deribit {
-	return &deribit.Deribit{
-		ApiId:     os.Getenv("DERIBIT_API_ID"),
-		ApiSecret: os.Getenv("DERIBIT_API_SECRET"),
-		Test:      testnet()}
-}
-
 func bybitLimitTrader(buy bool) (limitTrader, orderCanceler) {
-	b := newBybit()
+	b := bybit.NewBybitFromEnv()
 
 	return func(amount int, mt marketTrader) error {
 			return b.Trade(amount, buy, buy, mt)
@@ -42,7 +20,7 @@ func bybitLimitTrader(buy bool) (limitTrader, orderCanceler) {
 }
 
 func bybitMarketTrader(buy bool) marketTrader {
-	b := newBybit()
+	b := bybit.NewBybitFromEnv()
 
 	return func(contracts int) {
 		if err := b.MarketOrder(contracts, buy, buy); err != nil {
@@ -52,7 +30,7 @@ func bybitMarketTrader(buy bool) marketTrader {
 }
 
 func deribitLimitTrader(contract string, buy bool) (limitTrader, orderCanceler) {
-	d := newDeribit()
+	d := deribit.NewDeribitFromEnv()
 
 	return func(amount int, mt marketTrader) error {
 			return d.Trade(contract, amount, buy, buy, mt)
@@ -64,7 +42,7 @@ func deribitLimitTrader(contract string, buy bool) (limitTrader, orderCanceler) 
 
 func deribitMarketTrader(contract string, buy bool) marketTrader {
 	var dRemainder int
-	d := newDeribit()
+	d := deribit.NewDeribitFromEnv()
 
 	return func(amount int) {
 		// must be multiples of 10
@@ -93,7 +71,7 @@ func deribitMarketTrader(contract string, buy bool) marketTrader {
 
 func binanceMarketTrader(buy bool) marketTrader {
 	var bRemainder int
-	b := newBinance()
+	b := binance.NewBinanceFromEnv()
 
 	return func(usdt int) {
 		// must be greater than 10

@@ -158,5 +158,6 @@ func (b *Binance) GetAddress(coin string) (string, error) {
 func NewBinanceFromEnv() *Binance {
 	return &Binance{
 		ApiKey:    os.Getenv("BINANCE_API_KEY"),
-		ApiSecret: os.Getenv("BINANCE_API_SECRET")}
+		ApiSecret: os.Getenv("BINANCE_API_SECRET"),
+		Testnet:   os.Getenv("TESTNET") != ""}
 }
