@@ -11,8 +11,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var _deribit *deribit.Deribit
-
 func newBinance() *binance.Binance {
 	return &binance.Binance{
 		ApiKey:    os.Getenv("BINANCE_API_KEY"),
@@ -27,18 +25,10 @@ func newBybit() *bybit.Bybit {
 }
 
 func newDeribit() *deribit.Deribit {
-	if _deribit == nil {
-		_deribit = &deribit.Deribit{
-			ApiId:     os.Getenv("DERIBIT_API_ID"),
-			ApiSecret: os.Getenv("DERIBIT_API_SECRET"),
-			Test:      testnet()}
-
-		if _, err := _deribit.AccessToken(); err != nil {
-			log.Fatal(err)
-		}
-	}
-
-	return _deribit
+	return &deribit.Deribit{
+		ApiId:     os.Getenv("DERIBIT_API_ID"),
+		ApiSecret: os.Getenv("DERIBIT_API_SECRET"),
+		Test:      testnet()}
 }
 
 func bybitLimitTrader(buy bool) (limitTrader, orderCanceler) {
