@@ -3,16 +3,19 @@ package main
 import (
 	"fmt"
 	"math"
+	"os"
 	"time"
 
 	"github.com/stevenwilkin/carry/binance"
 	"github.com/stevenwilkin/carry/bybit"
 	"github.com/stevenwilkin/carry/deribit"
+	"github.com/stevenwilkin/carry/feed"
 
 	_ "github.com/joho/godotenv/autoload"
 )
 
 var (
+	h  *feed.Handler
 	b  *binance.Binance
 	by *bybit.Bybit
 	d  *deribit.Deribit
@@ -55,43 +58,45 @@ func display() {
 	fmt.Printf("  %s %6.0f\n", width("", w), total)
 }
 
-func poll[T any](f func() (T, error), p func(x T)) {
-	go func() {
-		t := time.NewTicker(1 * time.Second)
+func displayFailing() {
+	fmt.Println("\033[2J\033[H\033[?25l") // clear screen, move cursor to top of screen, hide cursor
+	fmt.Println("Feed failing...")
+}
 
-		for {
-			result, err := f()
-			if err != nil {
-				panic(err)
-			}
-
-			p(result)
-			<-t.C
-		}
-	}()
+func exitFailed() {
+	fmt.Println("Feed failed")
+	os.Exit(1)
 }
 
 func main() {
+	h = feed.NewHandler()
 	b = binance.NewBinanceFromEnv()
 	by = bybit.NewBybitFromEnv()
 	d = deribit.NewDeribitFromEnv()
 
-	poll(b.GetBalance, func(x float64) {
+	h.Add(feed.NewFeed(feed.Poll(b.GetBalance), func(x float64) {
 		usdt = x
-	})
+	}))
 
-	poll(by.GetSize, func(x int) {
+	h.Add(feed.NewFeed(feed.Poll(by.GetSize), func(x int) {
 		btcusd = x
-	})
+	}))
 
-	poll(d.GetPositions, func(x []deribit.Position) {
+	h.Add(feed.NewFeed(feed.Poll(d.GetPositions), func(x []deribit.Position) {
 		futures = x
-	})
+	}))
 
 	t := time.NewTicker(100 * time.Millisecond)
 
 	for {
-		display()
+		if h.Failed() {
+			exitFailed()
+		} else if h.Failing() {
+			displayFailing()
+		} else {
+			display()
+		}
+
 		<-t.C
 	}
 }
