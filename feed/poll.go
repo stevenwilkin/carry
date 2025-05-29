@@ -4,6 +4,12 @@ import (
 	"time"
 )
 
+func SetValue[T any](x *T) func(T) {
+	return func(y T) {
+		*x = y
+	}
+}
+
 func Poll[T any](f func() (T, error)) func() chan T {
 	return func() chan T {
 		ch := make(chan T)

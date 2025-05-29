@@ -69,17 +69,9 @@ func exitFailed() {
 }
 
 func main() {
-	h.Add(feed.NewFeed(feed.Poll(b.GetBalance), func(x float64) {
-		usdt = x
-	}))
-
-	h.Add(feed.NewFeed(feed.Poll(by.GetSize), func(x int) {
-		btcusd = x
-	}))
-
-	h.Add(feed.NewFeed(feed.Poll(d.GetPositions), func(x []deribit.Position) {
-		futures = x
-	}))
+	h.Add(feed.NewFeed(feed.Poll(b.GetBalance), feed.SetValue(&usdt)))
+	h.Add(feed.NewFeed(feed.Poll(by.GetSize), feed.SetValue(&btcusd)))
+	h.Add(feed.NewFeed(feed.Poll(d.GetPositions), feed.SetValue(&futures)))
 
 	t := time.NewTicker(100 * time.Millisecond)
 
