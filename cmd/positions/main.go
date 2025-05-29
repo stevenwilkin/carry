@@ -15,10 +15,10 @@ import (
 )
 
 var (
-	h  *feed.Handler
-	b  *binance.Binance
-	by *bybit.Bybit
-	d  *deribit.Deribit
+	h  = feed.NewHandler()
+	b  = binance.NewBinanceFromEnv()
+	by = bybit.NewBybitFromEnv()
+	d  = deribit.NewDeribitFromEnv()
 
 	usdt    float64
 	btcusd  int
@@ -69,11 +69,6 @@ func exitFailed() {
 }
 
 func main() {
-	h = feed.NewHandler()
-	b = binance.NewBinanceFromEnv()
-	by = bybit.NewBybitFromEnv()
-	d = deribit.NewDeribitFromEnv()
-
 	h.Add(feed.NewFeed(feed.Poll(b.GetBalance), func(x float64) {
 		usdt = x
 	}))
