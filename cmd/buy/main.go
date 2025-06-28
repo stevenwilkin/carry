@@ -21,7 +21,7 @@ func main() {
 		usdt, _ = strconv.ParseFloat(os.Args[1], 64)
 	}
 
-	if usdt <= 10.0 {
+	if usdt < 5.0 {
 		fmt.Println("Invalid args")
 		return
 	}
