@@ -3,6 +3,8 @@ package dispatcher
 import (
 	"sync"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Dispatcher struct {
@@ -34,7 +36,10 @@ func (d *Dispatcher) Run() {
 				continue
 			}
 
+			log.WithField("quantity", quantity).Debug("Market order")
+
 			if err := d.cb(quantity); err != nil {
+				log.Error(err)
 				continue
 			}
 
