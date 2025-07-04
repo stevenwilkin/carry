@@ -4,14 +4,16 @@ import (
 	"os"
 	"os/signal"
 	"strings"
-	"sync"
 	"syscall"
+
+	"github.com/stevenwilkin/carry/dispatcher"
 
 	log "github.com/sirupsen/logrus"
 )
 
-type marketTrader func(amount int)
-type limitTrader func(amount int, mt marketTrader) error
+type cb func(int)
+type marketTrader func(int) error
+type limitTrader func(int, cb) error
 type orderCanceler func()
 
 var (
@@ -21,7 +23,7 @@ var (
 	lt                               limitTrader
 	mt                               marketTrader
 	oc                               orderCanceler
-	wg                               sync.WaitGroup
+	dispatch                         *dispatcher.Dispatcher
 )
 
 func trapSigInt() {
@@ -34,16 +36,6 @@ func trapSigInt() {
 		}
 		os.Exit(0)
 	}()
-}
-
-func processCb(cb marketTrader) marketTrader {
-	return func(amount int) {
-		wg.Add(1)
-		go func() {
-			cb(amount)
-			wg.Done()
-		}()
-	}
 }
 
 func main() {
@@ -93,12 +85,14 @@ func main() {
 		}
 	}
 
-	if err := lt(usd, processCb(mt)); err != nil {
+	dispatch = dispatcher.NewDispatcher(mt)
+
+	if err := lt(usd, dispatch.Add); err != nil {
 		log.Fatal(err)
 	}
 
-	log.Debug("Waiting on callbacks")
-	wg.Wait()
+	log.Debug("Waiting on dispatcher")
+	dispatch.Wait()
 
 	log.Info("Done")
 }

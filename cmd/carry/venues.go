@@ -6,13 +6,12 @@ import (
 	"github.com/stevenwilkin/carry/deribit"
 
 	_ "github.com/joho/godotenv/autoload"
-	log "github.com/sirupsen/logrus"
 )
 
 func bybitLimitTrader(buy bool) (limitTrader, orderCanceler) {
 	b := bybit.NewBybitFromEnv()
 
-	return func(amount int, mt marketTrader) error {
+	return func(amount int, mt cb) error {
 			return b.Trade(amount, buy, buy, mt)
 		}, func() {
 			b.CancelOrders()
@@ -22,17 +21,15 @@ func bybitLimitTrader(buy bool) (limitTrader, orderCanceler) {
 func bybitMarketTrader(buy bool) marketTrader {
 	b := bybit.NewBybitFromEnv()
 
-	return func(contracts int) {
-		if err := b.MarketOrder(contracts, buy, buy); err != nil {
-			log.Error(err)
-		}
+	return func(contracts int) error {
+		return b.MarketOrder(contracts, buy, buy)
 	}
 }
 
 func deribitLimitTrader(contract string, buy bool) (limitTrader, orderCanceler) {
 	d := deribit.NewDeribitFromEnv()
 
-	return func(amount int, mt marketTrader) error {
+	return func(amount int, mt cb) error {
 			return d.Trade(contract, amount, buy, buy, mt)
 		},
 		func() {
@@ -41,66 +38,17 @@ func deribitLimitTrader(contract string, buy bool) (limitTrader, orderCanceler) 
 }
 
 func deribitMarketTrader(contract string, buy bool) marketTrader {
-	var dRemainder int
 	d := deribit.NewDeribitFromEnv()
 
-	return func(amount int) {
-		// must be multiples of 10
-		contracts := ((amount + dRemainder) / 10) * 10
-		dRemainder = (amount + dRemainder) % 10
-
-		log.WithFields(log.Fields{
-			"venue":     "deribit",
-			"amount":    amount,
-			"contracts": contracts,
-			"remainder": dRemainder,
-		}).Debug("Market order")
-
-		if contracts == 0 {
-			log.WithFields(log.Fields{
-				"venue":     "deribit",
-				"remainder": dRemainder,
-			}).Info("Skipping market order")
-			return
-		}
-		if err := d.MarketOrder(contract, contracts, buy, buy); err != nil {
-			log.Error(err)
-		}
+	return func(amount int) error {
+		return d.MarketOrder(contract, amount, buy, buy)
 	}
 }
 
 func binanceMarketTrader(buy bool) marketTrader {
-	var bRemainder int
 	b := binance.NewBinanceFromEnv()
 
-	return func(usdt int) {
-		// must be greater than 10
-		amount := usdt + bRemainder
-
-		if amount < 10 {
-			bRemainder = amount
-			amount = 0
-		} else {
-			bRemainder = 0
-		}
-
-		log.WithFields(log.Fields{
-			"venue":     "binance",
-			"usdt":      usdt,
-			"amount":    amount,
-			"remainder": bRemainder,
-		}).Debug("Market order")
-
-		if amount == 0 {
-			log.WithFields(log.Fields{
-				"venue":     "binance",
-				"remainder": bRemainder,
-			}).Info("Skipping market order")
-			return
-		}
-
-		if err := b.MarketOrder(float64(amount), buy); err != nil {
-			log.Error(err)
-		}
+	return func(amount int) error {
+		return b.MarketOrder(float64(amount), buy)
 	}
 }
