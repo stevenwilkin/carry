@@ -11,13 +11,16 @@ type Dispatcher struct {
 	remaining int
 	cb        func(int) error
 	m         sync.Mutex
+	c         *sync.Cond
 }
 
 func (d *Dispatcher) Add(quantity int) {
 	d.m.Lock()
-	defer d.m.Unlock()
 
 	d.remaining += quantity
+
+	d.m.Unlock()
+	d.c.Signal()
 }
 
 func (d *Dispatcher) Remaining() int {
@@ -26,15 +29,14 @@ func (d *Dispatcher) Remaining() int {
 
 func (d *Dispatcher) Run() {
 	go func() {
-		t := time.NewTicker(10 * time.Millisecond)
-
 		for {
-			quantity := (d.remaining / 10) * 10
-
-			if quantity == 0 {
-				<-t.C
-				continue
+			d.m.Lock()
+			for d.remaining < 10 {
+				d.c.Wait()
 			}
+
+			quantity := (d.remaining / 10) * 10
+			d.m.Unlock()
 
 			log.WithField("quantity", quantity).Debug("Market order")
 
@@ -64,6 +66,7 @@ func (d *Dispatcher) Wait() {
 
 func NewDispatcher(cb func(int) error) *Dispatcher {
 	d := &Dispatcher{cb: cb}
+	d.c = sync.NewCond(&d.m)
 	d.Run()
 
 	return d

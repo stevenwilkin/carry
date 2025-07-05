@@ -11,14 +11,13 @@ func TestRemaining(t *testing.T) {
 		return nil
 	}
 
-	d := &Dispatcher{cb: f}
+	d := NewDispatcher(f)
 	d.Add(10)
 
 	if d.Remaining() != 10 {
 		t.Fatal("Should have 10 remaining")
 	}
 
-	d.Run()
 	d.Wait()
 
 	if d.Remaining() != 0 {
@@ -55,14 +54,14 @@ func TestNotMultiplesOfTen(t *testing.T) {
 
 	d := NewDispatcher(f)
 	d.Add(5)
-	time.Sleep(20 * time.Millisecond)
+	time.Sleep(time.Millisecond)
 
 	if d.Remaining() != 5 {
 		t.Fatal("Should have 5 remaining")
 	}
 
 	d.Add(12)
-	time.Sleep(20 * time.Millisecond)
+	time.Sleep(time.Millisecond)
 
 	if d.Remaining() != 7 {
 		t.Fatal("Should have 7 remaining")
@@ -79,6 +78,9 @@ func TestNotMultiplesOfTen(t *testing.T) {
 func TestCallCallback(t *testing.T) {
 	var total, calls int
 	f := func(x int) error {
+		if x == 0 {
+			t.Fatal("Should not dispatch quantity of 0")
+		}
 		total += x
 		calls += 1
 		return nil
@@ -88,7 +90,7 @@ func TestCallCallback(t *testing.T) {
 
 	d.Add(10)
 	d.Add(10)
-	time.Sleep(20 * time.Millisecond)
+	time.Sleep(time.Millisecond)
 	d.Add(10)
 	d.Add(10)
 	d.Wait()
@@ -98,7 +100,6 @@ func TestCallCallback(t *testing.T) {
 	}
 
 	if calls != 2 {
-		t.Log(calls)
-		t.Fatal("Should make 2 calls")
+		t.Fatal("Should make 2 calls, made", calls)
 	}
 }
