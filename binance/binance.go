@@ -136,6 +136,63 @@ func (b *Binance) GetBalance() (float64, error) {
 	return usdt, nil
 }
 
+func (b *Binance) GetPrice(symbol string) (float64, error) {
+	params := url.Values{"symbol": {symbol}}
+	body, err := b.doRequest("GET", "/api/v3/ticker/price", params, false)
+	if err != nil {
+		return 0, err
+	}
+
+	var response priceResponse
+	json.Unmarshal(body, &response)
+
+	return response.PriceFloat(), nil
+}
+
+func (b *Binance) GetBalances() ([]balance, error) {
+	params := url.Values{"omitZeroBalances": {"true"}}
+	body, err := b.doRequest("GET", "/api/v3/account", params, true)
+	if err != nil {
+		return []balance{}, err
+	}
+
+	var response accountResponse
+	json.Unmarshal(body, &response)
+
+	results := []balance{}
+	i := 0
+
+	usdtUsd, err := b.GetPrice("USDTUSD")
+	if err != nil {
+		return []balance{}, err
+	}
+
+	for _, asset := range response.Balances {
+		if asset.Asset == "EDG" {
+			continue
+		}
+
+		results = append(results, balance{
+			Asset: asset.Asset, Balance: asset.Total()})
+
+		if asset.Asset == "USDT" {
+			results[i].Value = results[i].Balance * usdtUsd
+			i++
+			continue
+		}
+
+		price, err := b.GetPrice(asset.Asset + "USDT")
+		if err != nil {
+			return []balance{}, err
+		}
+
+		results[i].Value = results[i].Balance * price * usdtUsd
+		i++
+	}
+
+	return results, nil
+}
+
 func (b *Binance) GetAddress(coin string) (string, error) {
 	network := "ETH"
 	if coin == "BTC" {

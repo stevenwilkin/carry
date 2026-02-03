@@ -25,3 +25,18 @@ type errorResponse struct {
 type addressResponse struct {
 	Address string `json:"address"`
 }
+
+type balance struct {
+	Asset   string
+	Balance float64
+	Value   float64
+}
+
+type priceResponse struct {
+	Price string `json:"price"`
+}
+
+func (p *priceResponse) PriceFloat() float64 {
+	price, _ := strconv.ParseFloat(p.Price, 64)
+	return price
+}
