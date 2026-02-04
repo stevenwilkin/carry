@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -150,22 +151,32 @@ func (b *Binance) GetPrice(symbol string) (float64, error) {
 }
 
 func (b *Binance) GetBalances() ([]balance, error) {
+	var wg sync.WaitGroup
+	var err error
+	var usdtUsd float64
+
+	wg.Add(1)
+	go func() {
+		usdtUsd, err = b.GetPrice("USDTUSD")
+		wg.Done()
+	}()
+
 	params := url.Values{"omitZeroBalances": {"true"}}
-	body, err := b.doRequest("GET", "/api/v3/account", params, true)
-	if err != nil {
+	body, errGet := b.doRequest("GET", "/api/v3/account", params, true)
+	if errGet != nil {
 		return []balance{}, err
 	}
 
 	var response accountResponse
 	json.Unmarshal(body, &response)
 
-	results := []balance{}
-	i := 0
-
-	usdtUsd, err := b.GetPrice("USDTUSD")
+	wg.Wait()
 	if err != nil {
 		return []balance{}, err
 	}
+
+	results := []balance{}
+	i := 0
 
 	for _, asset := range response.Balances {
 		if asset.Asset == "EDG" {
@@ -181,13 +192,23 @@ func (b *Binance) GetBalances() ([]balance, error) {
 			continue
 		}
 
-		price, err := b.GetPrice(asset.Asset + "USDT")
-		if err != nil {
-			return []balance{}, err
-		}
+		wg.Add(1)
+		go func(symbol string, idx int) {
+			price, errPrice := b.GetPrice(symbol)
+			if err != nil {
+				err = errPrice
+			} else {
+				results[idx].Value = results[idx].Balance * price * usdtUsd
+			}
+			wg.Done()
+		}(asset.Asset+"USDT", i)
 
-		results[i].Value = results[i].Balance * price * usdtUsd
 		i++
+	}
+
+	wg.Wait()
+	if err != nil {
+		return []balance{}, err
 	}
 
 	return results, nil
