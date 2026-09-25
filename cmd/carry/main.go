@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 
 	"github.com/stevenwilkin/carry/dispatcher"
@@ -24,7 +25,17 @@ var (
 	mt                               marketTrader
 	oc                               orderCanceler
 	dispatch                         *dispatcher.Dispatcher
+	waitOnce                         sync.Once
 )
+
+func waitForDispatcher() {
+	waitOnce.Do(func() {
+		if dispatch != nil {
+			log.Debug("Waiting on dispatcher")
+			dispatch.Wait()
+		}
+	})
+}
 
 func trapSigInt() {
 	go func() {
@@ -34,6 +45,19 @@ func trapSigInt() {
 		if oc != nil {
 			oc()
 		}
+
+		waited := make(chan struct{})
+		go func() {
+			waitForDispatcher()
+			close(waited)
+		}()
+
+		select {
+		case <-waited:
+		case <-c:
+			log.Warn("Forcing exit")
+		}
+
 		os.Exit(0)
 	}()
 }
@@ -91,8 +115,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Debug("Waiting on dispatcher")
-	dispatch.Wait()
+	waitForDispatcher()
 
 	log.Info("Done")
 }
