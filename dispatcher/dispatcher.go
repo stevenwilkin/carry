@@ -2,7 +2,6 @@ package dispatcher
 
 import (
 	"sync"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -20,7 +19,7 @@ func (d *Dispatcher) Add(quantity int) {
 	d.remaining += quantity
 
 	d.m.Unlock()
-	d.c.Signal()
+	d.c.Broadcast()
 }
 
 func (d *Dispatcher) Remaining() int {
@@ -48,19 +47,17 @@ func (d *Dispatcher) Run() {
 			d.m.Lock()
 			d.remaining -= quantity
 			d.m.Unlock()
+			d.c.Broadcast()
 		}
 	}()
 }
 
 func (d *Dispatcher) Wait() {
-	t := time.NewTicker(10 * time.Millisecond)
+	d.m.Lock()
+	defer d.m.Unlock()
 
-	for {
-		if d.remaining == 0 {
-			return
-		}
-
-		<-t.C
+	for d.remaining != 0 {
+		d.c.Wait()
 	}
 }
 
