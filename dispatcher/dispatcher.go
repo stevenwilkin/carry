@@ -23,6 +23,9 @@ func (d *Dispatcher) Add(quantity int) {
 }
 
 func (d *Dispatcher) Remaining() int {
+	d.m.Lock()
+	defer d.m.Unlock()
+
 	return d.remaining
 }
 
